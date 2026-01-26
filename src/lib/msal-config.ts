@@ -9,9 +9,14 @@
 import { LogLevel } from '@azure/msal-browser';
 import type { Configuration } from '@azure/msal-browser';
 
-// Default redirect URI for local development
+// Default redirect URI
 const getRedirectUri = () => {
     if (typeof window !== 'undefined') {
+        const host = window.location.hostname;
+        // Strict check for GitHub Pages production environment
+        if (host === 'realgarit.github.io') {
+            return 'https://realgarit.github.io/IntuneForge/';
+        }
         return window.location.origin;
     }
     return 'http://localhost:5173';

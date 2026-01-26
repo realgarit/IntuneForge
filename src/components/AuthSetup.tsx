@@ -113,8 +113,8 @@ export function AuthSetup() {
                         <li>Create a new registration named "IntuneForge"</li>
                         <li>Add API permissions:
                             <ul className="list-disc list-inside ml-4 mt-1">
-                                <li><code className="bg-muted px-1 rounded">DeviceManagementApps.ReadWrite.All</code></li>
-                                <li><code className="bg-muted px-1 rounded">Group.Read.All</code></li>
+                                <li><code className="bg-muted px-1 rounded">DeviceManagementApps.ReadWrite.All</code> (Delegated)</li>
+                                <li><code className="bg-muted px-1 rounded">Group.Read.All</code> (Delegated)</li>
                             </ul>
                         </li>
                         <li>In Authentication, add platform "Single-page application"</li>

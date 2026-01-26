@@ -8,7 +8,7 @@ Create and deploy Win32 apps to Microsoft Intune directly from your browser. No 
 
 - Works entirely in any modern browser
 - Packages .exe and .msi installers into .intunewin format
-- Connects securely to your Intune tenant via Azure AD
+- Connects securely to your Intune tenant via Entra
 - Uploads packages and handles assignments automatically
 - Saves your configurations for later use
 - Comes with a built-in dark theme
@@ -29,18 +29,18 @@ npm install
 npm run dev
 ```
 
-## Azure AD Setup
+## Entra Setup
 
-To deploy apps, you'll need to register an application in Azure AD.
+To deploy apps, you'll need to register an application in Entra ID.
 
-1.  Go to [Azure AD App Registrations](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade).
+1.  Go to [Entra ID App Registrations](https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade/quickStartType~/null/sourceType/Microsoft_AAD_IAM).
 2.  Create a **New registration** named **"IntuneForge"**.
 3.  Choose **Accounts in this organizational directory only**.
-4.  Under **API permissions**, add `DeviceManagementApps.ReadWrite.All` (Delegated) and grant admin consent.
-5.  Under **Authentication**, add a **Single-page application** platform with these redirect URIs:
+4.  Under **API permissions**, add `DeviceManagementApps.ReadWrite.All` and `Group.Read.All` (**Delegated permissions**) and grant admin consent.
+5.  Under **Authentication**, add **Single-page application** platform with these redirect URIs:
     - `http://localhost:5173` (for local dev)
-    - `https://realgarit.github.io` (for the hosted site)
-6.  Copy the **Client ID** and **Tenant ID** from the Overview tab—you'll need them to log in.
+    - `https://realgarit.github.io/IntuneForge/` (for the hosted site)
+6.  Copy the **Client ID** and **Tenant ID** from the Overview tab, you'll need them to log in.
 
 ## How It Works
 
@@ -77,7 +77,7 @@ Found a bug or have an idea? Feel free to open an issue or submit a pull request
 
 ## License
 
-MIT License - see [LICENSE](LICENSE).
+See [LICENSE](LICENSE).
 
 ## Credits
 
