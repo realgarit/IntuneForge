@@ -202,8 +202,22 @@ export async function uploadToAzureStorage(
 ): Promise<string[]> {
     const storageUrl = new URL(storageUri);
     const targetHost = storageUrl.host;
-    const proxyBase = `/azure-blob/${targetHost}${storageUrl.pathname}${storageUrl.search}`;
+
+    // Determine if we are in production (GitHub Pages) or local (Vite Proxy)
+    const isProduction = typeof window !== 'undefined' && window.location.hostname === 'realgarit.github.io';
+
+    // In production, we must attempt a direct upload because we don't have a proxy.
+    // Locally, we use the proxy to avoid CORS issues during dev.
+    const proxyBase = isProduction
+        ? `${storageUrl.origin}${storageUrl.pathname}${storageUrl.search}`
+        : `/azure-blob/${targetHost}${storageUrl.pathname}${storageUrl.search}`;
+
     const separator = storageUrl.search ? '&' : '?';
+    // If direct upload, the separator logic might be slightly different as we're appending to the full URL query string
+    // existing query string: ?sv=...
+    // we append: &comp=block...
+    // so if isProduction, we just append with & because SAS token always has params.
+    const effectiveSeparator = isProduction ? '&' : separator;
 
     const BLOCK_SIZE = 4 * 1024 * 1024; // 4MB blocks
     const blockIds: string[] = [];
@@ -217,7 +231,7 @@ export async function uploadToAzureStorage(
         const blockId = btoa(String(i).padStart(6, '0'));
         blockIds.push(blockId);
 
-        const blockUrl = `${proxyBase}${separator}comp=block&blockid=${encodeURIComponent(blockId)}`;
+        const blockUrl = `${proxyBase}${effectiveSeparator}comp=block&blockid=${encodeURIComponent(blockId)}`;
         const blockResponse = await fetch(blockUrl, {
             method: 'PUT',
             body: block,
@@ -237,7 +251,7 @@ export async function uploadToAzureStorage(
 ${blockIds.map(id => `  <Latest>${id}</Latest>`).join('\n')}
 </BlockList>`;
 
-    const commitUrl = `${proxyBase}${separator}comp=blocklist`;
+    const commitUrl = `${proxyBase}${effectiveSeparator}comp=blocklist`;
     const commitResponse = await fetch(commitUrl, {
         method: 'PUT',
         headers: {
