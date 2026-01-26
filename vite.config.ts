@@ -1,9 +1,8 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type ViteDevServer } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import https from 'https'
 import { IncomingMessage, ServerResponse } from 'http'
-import { ViteDevServer } from 'vite'
 
 // Custom Middleware to proxy Azure Blob Storage requests
 // This mimics the Vercel /api/proxy serverless function.
