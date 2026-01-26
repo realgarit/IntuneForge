@@ -1,120 +1,85 @@
 # IntuneForge 🔨
 
-A modern, web-based tool for creating and deploying Win32 application packages to Microsoft Intune. No installation required - just visit the website and start packaging!
+Create and deploy Win32 apps to Microsoft Intune directly from your browser. No installation needed—just visit the site and start packaging.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
 
-- 🌐 **Web-Based** - Works in any modern browser, no installation needed
-- 📦 **Create .intunewin Packages** - Package your .exe or .msi installers directly in the browser
-- 🔐 **Azure AD Authentication** - Securely connect to your Intune tenant
-- 🚀 **Deploy to Intune** - Upload packages and configure assignments
-- 💾 **Save Configurations** - Save and reuse package configurations
-- 🌙 **Dark Mode** - Beautiful dark theme by default
-- 🔓 **Open Source** - MIT licensed, free to use and modify
+- Works entirely in any modern browser
+- Packages .exe and .msi installers into .intunewin format
+- Connects securely to your Intune tenant via Azure AD
+- Uploads packages and handles assignments automatically
+- Saves your configurations for later use
+- Comes with a built-in dark theme
+- Open Source and MIT licensed
 
 ## Quick Start
 
-### Option 1: Use the Hosted Version
-Visit [https://realgarit.github.io/intuneforge](https://realgarit.github.io/intuneforge) to use IntuneForge directly in your browser.
+### Hosted Version
+You can use the tool right away at [realgarit.github.io/intuneforge](https://realgarit.github.io/intuneforge).
 
-### Option 2: Run Locally
+### Run Locally
+If you prefer running it yourself:
+
 ```bash
-# Clone the repository
 git clone https://github.com/realgarit/intuneforge.git
 cd intuneforge
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
 
 ## Azure AD Setup
 
-To deploy packages to Intune, you need to create an App Registration in Azure AD:
+To deploy apps, you'll need to register an application in Azure AD.
 
-1. Go to [Azure AD App Registrations](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade)
-2. Click **New registration**
-3. Name your app **"IntuneForge"**
-4. Select **Accounts in this organizational directory only**
-5. Click **Register**
-
-### Configure API Permissions
-1. Go to **API permissions**
-2. Click **Add a permission** → **Microsoft Graph** → **Delegated permissions**
-3. Add: `DeviceManagementApps.ReadWrite.All`
-4. Click **Grant admin consent** for your organization
-
-### Configure Authentication
-1. Go to **Authentication**
-2. Click **Add a platform** → **Single-page application**
-3. Add redirect URI:
-   - For local development: `http://localhost:5173`
-   - For hosted version: `https://realgarit.github.io`
-4. Click **Configure**
-
-### Get Your Client and Tenant IDs
-1. Go to the **Overview** tab
-2. Copy the **Application (client) ID**
-3. Copy the **Directory (tenant) ID**
-4. Paste them in IntuneForge's Authentication settings
+1.  Go to [Azure AD App Registrations](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade).
+2.  Create a **New registration** named **"IntuneForge"**.
+3.  Choose **Accounts in this organizational directory only**.
+4.  Under **API permissions**, add `DeviceManagementApps.ReadWrite.All` (Delegated) and grant admin consent.
+5.  Under **Authentication**, add a **Single-page application** platform with these redirect URIs:
+    - `http://localhost:5173` (for local dev)
+    - `https://realgarit.github.io` (for the hosted site)
+6.  Copy the **Client ID** and **Tenant ID** from the Overview tab—you'll need them to log in.
 
 ## How It Works
 
-IntuneForge creates .intunewin packages entirely in your browser using the Web Crypto API:
+IntuneForge handles everything locally on your machine using the browser's Web Crypto API.
 
-1. **ZIP Compression** - Your installer is compressed into a ZIP archive
-2. **AES-256 Encryption** - The ZIP is encrypted for secure transport
-3. **XML Metadata** - Detection information is generated
-4. **Package Assembly** - Everything is bundled into the .intunewin format
-
-All processing happens locally - your files never leave your browser until you choose to deploy.
+When you add an installer, it gets compressed into a ZIP, encrypted with AES-256, and bundled with the required XML metadata. The final .intunewin file is assembled right in your browser memory. Your files never leave your computer until you hit deploy, which sends them directly to your Intune tenant.
 
 ## Detection Rules
 
-IntuneForge supports all standard Intune detection rule types:
+We support all the standard detection methods:
 
-| Type | Description |
+| Type | Checks for |
 |------|-------------|
-| **Registry** | Check for registry keys or values |
-| **File** | Check for file/folder existence, version, or size |
-| **Script** | Custom PowerShell detection script |
-| **MSI** | Check MSI product code and version |
+| **Registry** | Keys or values |
+| **File** | Existence, version, or size |
+| **Script** | Custom PowerShell logic |
+| **MSI** | Product codes |
 
-## Technology Stack
+## Tech Stack
 
-- **React** + **TypeScript** - Modern frontend framework
-- **Vite** - Fast build tooling
-- **Tailwind CSS** - Utility-first styling
-- **shadcn/ui** - Beautiful, accessible components
-- **MSAL.js** - Microsoft authentication
-- **JSZip** - ZIP file handling
-- **Web Crypto API** - AES-256 encryption
+- **React** & **TypeScript**
+- **Vite** for building
+- **Tailwind CSS** & **shadcn/ui** for styling
+- **MSAL.js** for authentication
+- **JSZip** & **Web Crypto API** for the heavy lifting
 
-## Legacy PowerShell Scripts
+## Legacy Scripts
 
-The original PowerShell scripts are preserved in the `legacy/` directory. These were the foundation for IntuneForge and can still be used for automation scenarios.
+If you're looking for the original PowerShell automation scripts, check the `legacy/` directory. They're still there if you need them.
 
 ## Contributing
 
-Contributions are welcome! Feel free to:
-
-- 🐛 Report bugs
-- 💡 Suggest features
-- 🔧 Submit pull requests
+Found a bug or have an idea? Feel free to open an issue or submit a pull request.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE](LICENSE).
 
 ## Credits
 
-- Original PowerShell scripts inspired by [MSEndpointMgr/IntuneWin32App](https://github.com/MSEndpointMgr/IntuneWin32App)
-- UI components from [shadcn/ui](https://ui.shadcn.com)
-
----
-
-Made with 🔨 by [realgarit](https://github.com/realgarit)
+- Inspired by [MSEndpointMgr/IntuneWin32App](https://github.com/MSEndpointMgr/IntuneWin32App)
+- UI components by [shadcn/ui](https://ui.shadcn.com)
