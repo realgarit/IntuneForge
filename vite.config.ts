@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import https from 'https'
 import { IncomingMessage, ServerResponse } from 'http'
+import { PassThrough } from 'stream'
 
 // Custom plugin to reliably proxy Azure Blob requests
 const azureBlobProxy = () => ({
@@ -28,8 +29,9 @@ const azureBlobProxy = () => ({
 
       // 2. Construct the upstream URL
       const targetUrl = `https://${azureHost}${restOfPath}`;
+      const declaredSize = req.headers['content-length'] || 'unknown';
 
-      console.log(`[AzureProxy] ${req.method} -> ${targetUrl}`);
+      console.log(`[AzureProxy] ${req.method} -> ${targetUrl} (Content-Length: ${declaredSize})`);
 
       // 3. Prepare headers
       const headers = { ...req.headers };
@@ -57,6 +59,8 @@ const azureBlobProxy = () => ({
         rejectUnauthorized: false // In case of any weird cert issues, though Azure should be fine
       }, (proxyRes) => {
         // 5. Pipe response back to client
+        console.log(`[AzureProxy] Response: ${proxyRes.statusCode} ${proxyRes.statusMessage}`);
+
         res.statusCode = proxyRes.statusCode || 500;
         res.statusMessage = proxyRes.statusMessage || '';
 
@@ -77,8 +81,17 @@ const azureBlobProxy = () => ({
         }
       });
 
-      // 6. Pipe client request body to upstream
-      req.pipe(proxyReq);
+      // 6. Pipe client request body to upstream with byte counting
+      const counter = new PassThrough();
+      let totalBytes = 0;
+      counter.on('data', (chunk) => {
+        totalBytes += chunk.length;
+      });
+      counter.on('end', () => {
+        console.log(`[AzureProxy] Upload Complete. Total Bytes Sent: ${totalBytes}`);
+      });
+
+      req.pipe(counter).pipe(proxyReq);
     });
   }
 })

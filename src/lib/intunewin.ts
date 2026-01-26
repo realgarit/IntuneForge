@@ -55,11 +55,15 @@ async function generateRandomBytes(length: number): Promise<Uint8Array> {
 }
 
 /**
- * Converts bytes to base64 string
+ * Converts bytes to base64 string using browser-native methods
  */
 function bytesToBase64(bytes: Uint8Array): string {
-    const binString = Array.from(bytes, (byte) => String.fromCodePoint(byte)).join("");
-    return btoa(binString);
+    let binary = '';
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
 }
 
 /**
@@ -73,7 +77,7 @@ async function computeSHA256(data: BufferSource): Promise<string> {
 /**
  * Computes HMAC-SHA256 of data
  */
-async function computeHMAC(key: Uint8Array, data: BufferSource): Promise<string> {
+async function computeHMAC(key: Uint8Array, data: BufferSource): Promise<{ base64: string; bytes: Uint8Array }> {
     const cryptoKey = await crypto.subtle.importKey(
         'raw',
         key as any,
@@ -82,7 +86,11 @@ async function computeHMAC(key: Uint8Array, data: BufferSource): Promise<string>
         ['sign']
     );
     const signature = await crypto.subtle.sign('HMAC', cryptoKey, data);
-    return bytesToBase64(new Uint8Array(signature));
+    const signatureBytes = new Uint8Array(signature);
+    return {
+        base64: bytesToBase64(signatureBytes),
+        bytes: signatureBytes
+    };
 }
 
 /**
@@ -115,8 +123,9 @@ function generateDetectionXml(metadata: IntuneWinMetadata): string {
     const { applicationInfo } = metadata;
     const { encryptionInfo } = applicationInfo;
 
+    // Updated ToolVersion to match newer standards
     return `<?xml version="1.0" encoding="utf-8"?>
-<ApplicationInfo xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ToolVersion="1.8.4.0">
+<ApplicationInfo xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ToolVersion="1.8.5.0">
   <Name>${escapeXml(applicationInfo.name)}</Name>
   <UnencryptedContentSize>${applicationInfo.unencryptedContentSize}</UnencryptedContentSize>
   <FileName>${escapeXml(applicationInfo.fileName)}</FileName>
@@ -145,6 +154,7 @@ function escapeXml(str: string): string {
         .replace(/'/g, '&apos;');
 }
 
+
 /**
  * Creates an .intunewin package from a source file
  */
@@ -161,12 +171,13 @@ export async function createIntuneWinPackage(
     onProgress?.('Creating inner ZIP...', 10);
 
     // Create the inner ZIP containing the source file
-    // NOTE: We use STORE (no compression) for the inner ZIP as standard practice
     const innerZip = new JSZip();
-    innerZip.file(packageInfo.setupFile, fileBytes, { compression: 'STORE' });
+    innerZip.file(packageInfo.setupFile, fileBytes, { compression: 'DEFLATE' });
 
     const innerZipBlob = await innerZip.generateAsync({
-        type: 'arraybuffer'
+        type: 'arraybuffer',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 9 }
     });
 
     const unencryptedContentSize = innerZipBlob.byteLength;
@@ -188,15 +199,23 @@ export async function createIntuneWinPackage(
 
     onProgress?.('Creating package structure...', 80);
 
-    // Create the encrypted file with IV prepended
-    const encryptedFile = new Uint8Array(iv.length + encryptedContent.byteLength);
-    encryptedFile.set(iv, 0);
-    encryptedFile.set(new Uint8Array(encryptedContent), iv.length);
+    // Create the encrypted file with IV prepended (Payload logic layer 1)
+    // Structure: [IV (16 bytes)] [Ciphertext (N bytes)]
+    const ivCombinedPayload = new Uint8Array(iv.length + encryptedContent.byteLength);
+    ivCombinedPayload.set(iv, 0);
+    ivCombinedPayload.set(new Uint8Array(encryptedContent), iv.length);
 
     onProgress?.('Computing HMAC...', 85);
 
-    // The MAC is computed over the final encrypted file (IV + encrypted content)
-    const mac = await computeHMAC(macKey, encryptedFile);
+    // The MAC is computed over [IV + Ciphertext]
+    const macResult = await computeHMAC(macKey, ivCombinedPayload);
+
+    // Create the FINAL encrypted file with MAC prepended (Payload logic layer 2)
+    // Structure: [MAC (32 bytes)] [IV (16 bytes)] [Ciphertext (N bytes)]
+    // This matches the official Microsoft structure.
+    const finalEncryptedPayload = new Uint8Array(macResult.bytes.length + ivCombinedPayload.length);
+    finalEncryptedPayload.set(macResult.bytes, 0);
+    finalEncryptedPayload.set(ivCombinedPayload, macResult.bytes.length);
 
     // Generate metadata
     const encryptedFileName = `${uuidv4()}.bin`;
@@ -211,7 +230,7 @@ export async function createIntuneWinPackage(
                 encryptionKey: bytesToBase64(encryptionKey),
                 macKey: bytesToBase64(macKey),
                 initializationVector: bytesToBase64(iv),
-                mac,
+                mac: macResult.base64,
                 profileIdentifier: 'ProfileVersion1',
                 fileDigest,
                 fileDigestAlgorithm: 'SHA256'
@@ -226,7 +245,7 @@ export async function createIntuneWinPackage(
     const contentsFolder = outerZip.folder('IntuneWinPackage/Contents');
     const metadataFolder = outerZip.folder('IntuneWinPackage/Metadata');
 
-    contentsFolder?.file(encryptedFileName, encryptedFile);
+    contentsFolder?.file(encryptedFileName, finalEncryptedPayload);
     metadataFolder?.file('Detection.xml', generateDetectionXml(metadata));
 
     const intunewinBlob = await outerZip.generateAsync({
@@ -237,9 +256,23 @@ export async function createIntuneWinPackage(
 
     onProgress?.('Complete!', 100);
 
+    // Debug logging for encryption details
+    console.log('[IntuneWin] Created package:', {
+        unencryptedSize: unencryptedContentSize,
+        finalPayloadSize: finalEncryptedPayload.byteLength,
+        ivLength: iv.length,
+        macLength: macResult.bytes.length,
+        mac: macResult.base64,
+        iv: bytesToBase64(iv).substring(0, 10) + '...'
+    });
+
     return {
         intunewinBlob,
-        encryptedPayload: new Blob([encryptedFile]),
+        // MAC FORMAT STRATEGY:
+        // Inner Zip: DEFLATE
+        // Payload: MAC (32) + IV (16) + Cipher
+        // This MUST match the full structure found in valid packages.
+        encryptedPayload: new Blob([finalEncryptedPayload]),
         metadata
     };
 }
