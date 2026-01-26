@@ -113,8 +113,9 @@ export async function deployToIntune({
         onProgress?.('waiting_for_commit', 85);
         await waitForCommit(accessToken, appId, contentVersionId, fileId);
 
-        // 8. Finalize the content version
         onProgress?.('finalizing', 90);
+        // Add a small safety delay to ensure Intune backend is consistent after commit
+        await new Promise(resolve => setTimeout(resolve, 2000));
         await updateAppContentVersion(accessToken, appId, contentVersionId);
 
         // 9. Create Assignments if any

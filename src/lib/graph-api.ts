@@ -368,25 +368,44 @@ export async function updateAppContentVersion(
     appId: string,
     contentVersionId: string
 ): Promise<void> {
-    const response = await fetch(
-        `${graphConfig.baseUrl}${graphConfig.win32Apps}/${appId}`,
-        {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                '@odata.type': '#microsoft.graph.win32LobApp',
-                committedContentVersion: contentVersionId,
-            }),
-        }
-    );
+    let lastError;
+    // Retry up to 3 times for 500/502/503/504 errors
+    for (let attempt = 1; attempt <= 3; attempt++) {
+        const response = await fetch(
+            `${graphConfig.baseUrl}${graphConfig.win32Apps}/${appId}`,
+            {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    '@odata.type': '#microsoft.graph.win32LobApp',
+                    committedContentVersion: contentVersionId,
+                }),
+            }
+        );
 
-    if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Failed to update app: ${error}`);
+        if (response.ok) {
+            return;
+        }
+
+        const errorText = await response.text();
+        lastError = errorText;
+
+        // If it's a server error (5xx), wait and retry
+        if (response.status >= 500 && attempt < 3) {
+            console.warn(`Update App failed with ${response.status}. Retrying (Attempt ${attempt}/3)...`);
+            await new Promise(resolve => setTimeout(resolve, 2000 * attempt)); // Exponential-ish backoff
+            continue;
+        }
+
+        throw new Error(`Failed to update app (Status ${response.status}): ${errorText}`);
     }
+
+    // If we exit the loop, it means we failed all attempts
+    // lastError should be populated
+    throw new Error(`Failed to update app after 3 attempts: ${lastError || 'Unknown error'}`);
 }
 
 /**
