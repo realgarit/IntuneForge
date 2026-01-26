@@ -18,7 +18,7 @@ Create and deploy Win32 apps to Microsoft Intune directly from your browser. No 
 ## Quick Start
 
 ### Hosted Version
-You can use the tool right away at [realgarit.github.io/intuneforge](https://realgarit.github.io/intuneforge).
+You can use the full version of the tool at [intune-forge.vercel.app](https://intune-forge.vercel.app/).
 
 ### Run Locally
 If you prefer running it yourself:
@@ -39,8 +39,8 @@ To deploy apps, you'll need to register an application in Entra ID.
 3.  Choose **Accounts in this organizational directory only**.
 4.  Under **API permissions**, add `DeviceManagementApps.ReadWrite.All` and `Group.Read.All` (**Delegated permissions**) and grant admin consent.
 5.  Under **Authentication**, add **Single-page application** platform with these redirect URIs:
-    - `http://localhost:5173` (for local dev)
-    - `https://realgarit.github.io/IntuneForge/` (for the hosted site)
+    - `https://intune-forge.vercel.app/` (Production)
+    - `http://localhost:5173` (Local Development)
 6.  Copy the **Client ID** and **Tenant ID** from the Overview tab, you'll need them to log in.
 
 ## How It Works

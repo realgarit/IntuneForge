@@ -201,23 +201,14 @@ export async function uploadToAzureStorage(
     onProgress?: (progress: number) => void
 ): Promise<string[]> {
     const storageUrl = new URL(storageUri);
-    const targetHost = storageUrl.host;
 
-    // Determine if we are in production (GitHub Pages) or local (Vite Proxy)
-    const isProduction = typeof window !== 'undefined' && window.location.hostname === 'realgarit.github.io';
+    // Unified Proxy Strategy for Vercel & Local
+    // We send the full target URL as a query parameter to our proxy endpoint.
+    // Vercel: /api/proxy?url=...
+    // Local: /api/proxy?url=... (handled by Vite middleware)
 
-    // In production, we must attempt a direct upload because we don't have a proxy.
-    // Locally, we use the proxy to avoid CORS issues during dev.
-    const proxyBase = isProduction
-        ? `${storageUrl.origin}${storageUrl.pathname}${storageUrl.search}`
-        : `/azure-blob/${targetHost}${storageUrl.pathname}${storageUrl.search}`;
-
-    const separator = storageUrl.search ? '&' : '?';
-    // If direct upload, the separator logic might be slightly different as we're appending to the full URL query string
-    // existing query string: ?sv=...
-    // we append: &comp=block...
-    // so if isProduction, we just append with & because SAS token always has params.
-    const effectiveSeparator = isProduction ? '&' : separator;
+    const targetUrl = `${storageUrl.origin}${storageUrl.pathname}${storageUrl.search}`;
+    // Unified Proxy Strategy: /api/proxy?url=...
 
     const BLOCK_SIZE = 4 * 1024 * 1024; // 4MB blocks
     const blockIds: string[] = [];
@@ -231,7 +222,16 @@ export async function uploadToAzureStorage(
         const blockId = btoa(String(i).padStart(6, '0'));
         blockIds.push(blockId);
 
-        const blockUrl = `${proxyBase}${effectiveSeparator}comp=block&blockid=${encodeURIComponent(blockId)}`;
+        // Append block parameters to the *target* URL, which is encoded in the 'url' query param
+        // Wait, the Vercel proxy expects: /api/proxy?url=FULL_TARGET_URL
+        // The target URL for a block needs to be: BASE_SAS_URL + "&comp=block&blockid=..."
+
+        const blockParams = `&comp=block&blockid=${encodeURIComponent(blockId)}`;
+        const fullBlockUrl = `${targetUrl}${blockParams}`;
+
+        // Final Proxy URL
+        const blockUrl = `/api/proxy?url=${encodeURIComponent(fullBlockUrl)}`;
+
         const blockResponse = await fetch(blockUrl, {
             method: 'PUT',
             body: block,
@@ -251,7 +251,10 @@ export async function uploadToAzureStorage(
 ${blockIds.map(id => `  <Latest>${id}</Latest>`).join('\n')}
 </BlockList>`;
 
-    const commitUrl = `${proxyBase}${effectiveSeparator}comp=blocklist`;
+    const commitParams = `&comp=blocklist`;
+    const fullCommitUrl = `${targetUrl}${commitParams}`;
+    const commitUrl = `/api/proxy?url=${encodeURIComponent(fullCommitUrl)}`;
+
     const commitResponse = await fetch(commitUrl, {
         method: 'PUT',
         headers: {

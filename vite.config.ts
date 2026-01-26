@@ -3,108 +3,82 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import https from 'https'
 import { IncomingMessage, ServerResponse } from 'http'
-import { PassThrough } from 'stream'
+import { ViteDevServer } from 'vite'
 
-// Custom plugin to reliably proxy Azure Blob requests
+// Custom Middleware to proxy Azure Blob Storage requests
+// This mimics the Vercel /api/proxy serverless function.
 const azureBlobProxy = () => ({
-  name: 'configure-azure-proxy',
-  configureServer(server: any) {
-    server.middlewares.use('/azure-blob', (req: IncomingMessage, res: ServerResponse, _next: any) => {
-      // The req.url here is stripping the mount point '/azure-blob', 
-      // so it will look like: /<account_host>/<container>/<blob>...
+  name: 'azure-blob-proxy',
+  configureServer(server: ViteDevServer) {
+    server.middlewares.use('/api/proxy', (req: IncomingMessage, res: ServerResponse, _next: any) => {
+      // Parse the target URL from the query parameter
+      // req.url is the path relative to the mount point (e.g. /?url=...)
+      // We construct a dummy base to parse it easily
+      const urlObj = new URL(req.url!, `http://${req.headers.host}`);
+      const targetUrl = urlObj.searchParams.get('url');
 
-      // 1. Validate and parse the URL
-      // Expected format: /host/container/blob...
-      const urlMatch = (req.url || '').match(/^\/([^/]+)(.*)$/);
-
-      if (!urlMatch) {
-        console.error('[AzureProxy] Invalid URL format:', req.url);
+      if (!targetUrl) {
         res.statusCode = 400;
-        res.end('Invalid Proxy URL format');
+        res.end('Missing "url" query parameter');
         return;
       }
 
-      const azureHost = urlMatch[1];
-      const restOfPath = urlMatch[2] || '/';
+      // console.log(`[AzureProxy] Proxying to: ${targetUrl}`);
 
-      // 2. Construct the upstream URL
-      const targetUrl = `https://${azureHost}${restOfPath}`;
+      try {
+        const targetUrlObj = new URL(targetUrl);
+        const options: https.RequestOptions = {
+          hostname: targetUrlObj.hostname,
+          port: 443,
+          path: `${targetUrlObj.pathname}${targetUrlObj.search}`,
+          method: req.method,
+          headers: {
+            ...req.headers,
+            host: targetUrlObj.hostname, // Important: Set Host header to Azure
+          },
+        };
 
-
-      // 3. Prepare headers
-      const headers = { ...req.headers };
-      // Remove headers that cause issues with Azure or are invalid for the upstream
-      delete headers.host;
-      delete headers.origin;
-      delete headers.referer;
-      delete headers.authorization;
-      delete headers.connection;
-
-      // Add required Azure headers
-      headers['x-ms-version'] = '2020-10-02';
-
-      // Only add BlobType for non-commit requests
-      // Azure returns InvalidHeaderValue if x-ms-blob-type is present on PutBlockList (comp=blocklist)
-      // We check if the URL contains 'comp=blocklist'
-      if (!(req.url || '').includes('comp=blocklist')) {
-        headers['x-ms-blob-type'] = 'BlockBlob';
-      }
-
-      // 4. Create the upstream request
-      const proxyReq = https.request(targetUrl, {
-        method: req.method,
-        headers: headers,
-        rejectUnauthorized: false // In case of any weird cert issues, though Azure should be fine
-      }, (proxyRes) => {
-        // 5. Pipe response back to client
-        console.log(`[AzureProxy] Response: ${proxyRes.statusCode} ${proxyRes.statusMessage}`);
-
-        res.statusCode = proxyRes.statusCode || 500;
-        res.statusMessage = proxyRes.statusMessage || '';
-
-        // Copy headers from upstream to response
-        for (const [key, value] of Object.entries(proxyRes.headers)) {
-          // content-encoding sometimes causes issues if double-applied, but usually safe to copy
-          res.setHeader(key, value as string | string[]);
+        // Filter out headers that might cause issues (like Origin/Referer if strict)
+        if (options.headers) {
+          delete (options.headers as any).origin;
+          delete (options.headers as any).referer;
+          // delete (options.headers as any).host; // construct handled above
         }
 
-        proxyRes.pipe(res);
-      });
+        const proxyReq = https.request(options, (proxyRes) => {
+          res.writeHead(proxyRes.statusCode || 500, proxyRes.headers);
+          proxyRes.pipe(res);
+        });
 
-      proxyReq.on('error', (err) => {
-        console.error('[AzureProxy] Upstream Error:', err.message);
-        if (!res.headersSent) {
+        proxyReq.on('error', (err) => {
+          console.error('[AzureProxy] Error:', err);
           res.statusCode = 502;
-          res.end('Proxy Upstream Error: ' + err.message);
-        }
-      });
+          res.end(`Proxy Error: ${err.message}`);
+        });
 
-      // 6. Pipe client request body to upstream with byte counting
-      const counter = new PassThrough();
-      let totalBytes = 0;
-      counter.on('data', (chunk) => {
-        totalBytes += chunk.length;
-      });
-      counter.on('end', () => {
-        // Upload complete
-      });
-
-      req.pipe(counter).pipe(proxyReq);
+        req.pipe(proxyReq);
+      } catch (error: any) {
+        console.error('[AzureProxy] Invalid Target URL:', targetUrl);
+        res.statusCode = 400;
+        res.end(`Invalid Target URL: ${error.message}`);
+      }
     });
-  }
-})
+  },
+});
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), azureBlobProxy()],
+  plugins: [
+    react(),
+    azureBlobProxy(),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
-  // For GitHub Pages deployment
-  base: './',
   server: {
-    // No 'proxy' config needed anymore, handled by middleware
-  },
-})
+    port: 5173,
+    cors: true,
+  }
+});

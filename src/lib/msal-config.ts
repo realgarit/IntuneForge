@@ -13,10 +13,11 @@ import type { Configuration } from '@azure/msal-browser';
 const getRedirectUri = () => {
     if (typeof window !== 'undefined') {
         const host = window.location.hostname;
-        // Strict check for GitHub Pages production environment
+        // GitHub Pages requires the subdirectory path
         if (host === 'realgarit.github.io') {
             return 'https://realgarit.github.io/IntuneForge/';
         }
+        // Vercel and Localhost serve from root, so origin is sufficient
         return window.location.origin;
     }
     return 'http://localhost:5173';
