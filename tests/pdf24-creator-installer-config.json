@@ -1,0 +1,27 @@
+{
+  "id": "7d09d348-6f5c-498d-92d3-410e336517b6",
+  "name": "pdf24-creator-installer",
+  "displayName": "pdf24-creator-installer",
+  "publisher": "test",
+  "version": "1.0.0",
+  "description": "",
+  "packageType": "EXE",
+  "sourceType": "local",
+  "setupFileName": "pdf24-creator-installer.exe",
+  "installCommandLine": "\"pdf24-creator-installer.exe\" /S /ALLUSERS",
+  "uninstallCommandLine": "\"pdf24-creator-installer.exe\" /S /uninstall",
+  "installBehavior": "system",
+  "restartBehavior": "suppress",
+  "detectionRules": [
+    {
+      "type": "registry",
+      "keyPath": "HKLM\\SOFTWARE\\",
+      "valueName": "test",
+      "operator": "exists",
+      "check32BitOn64System": false
+    }
+  ],
+  "assignments": [],
+  "createdAt": "2026-01-22T22:21:36.186Z",
+  "updatedAt": "2026-01-22T22:21:48.684Z"
+}

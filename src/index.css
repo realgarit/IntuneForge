@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@theme {
+  --color-border: hsl(240 3.7% 15.9%);
+  --color-input: hsl(240 3.7% 15.9%);
+  --color-ring: hsl(212 94% 56%);
+
+  --color-background: hsl(222 47% 6%);
+  --color-foreground: hsl(210 40% 98%);
+
+  --color-primary: hsl(212 94% 56%);
+  --color-primary-foreground: hsl(0 0% 98%);
+
+  --color-secondary: hsl(217 32% 17%);
+  --color-secondary-foreground: hsl(210 40% 98%);
+
+  --color-destructive: hsl(0 62.8% 30.6%);
+  --color-destructive-foreground: hsl(0 0% 98%);
+
+  --color-muted: hsl(217 32% 17%);
+  --color-muted-foreground: hsl(215 20% 65%);
+
+  --color-accent: hsl(217 32% 17%);
+  --color-accent-foreground: hsl(210 40% 98%);
+
+  --color-popover: hsl(222 47% 6%);
+  --color-popover-foreground: hsl(210 40% 98%);
+
+  --color-card: hsl(222 47% 6%);
+  --color-card-foreground: hsl(210 40% 98%);
+
+  --radius: 0.75rem;
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0
+    }
+
+    to {
+      height: var(--radix-accordion-content-height)
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height)
+    }
+
+    to {
+      height: 0
+    }
+  }
+}
+
+/* Custom Utilities */
+@utility glass {
+  @apply bg-background/60 backdrop-blur-xl border-b border-border/40 supports-[backdrop-filter]:bg-background/60;
+}
+
+@utility glass-card {
+  @apply bg-card/40 backdrop-blur-md border border-border/50 shadow-sm;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    /* Subtle deep gradient background */
+    background-image:
+      radial-gradient(circle at 50% 0%, hsla(212, 94%, 56%, 0.15), transparent 70%),
+      linear-gradient(to bottom, hsl(222, 47%, 6%), hsl(222, 47%, 4%));
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+}
