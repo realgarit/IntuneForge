@@ -29,9 +29,7 @@ const azureBlobProxy = () => ({
 
       // 2. Construct the upstream URL
       const targetUrl = `https://${azureHost}${restOfPath}`;
-      const declaredSize = req.headers['content-length'] || 'unknown';
 
-      console.log(`[AzureProxy] ${req.method} -> ${targetUrl} (Content-Length: ${declaredSize})`);
 
       // 3. Prepare headers
       const headers = { ...req.headers };
@@ -88,7 +86,7 @@ const azureBlobProxy = () => ({
         totalBytes += chunk.length;
       });
       counter.on('end', () => {
-        console.log(`[AzureProxy] Upload Complete. Total Bytes Sent: ${totalBytes}`);
+        // Upload complete
       });
 
       req.pipe(counter).pipe(proxyReq);

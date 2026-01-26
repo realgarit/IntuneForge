@@ -162,6 +162,14 @@ export async function createIntuneWinPackage(
     packageInfo: PackageInfo,
     onProgress?: (stage: string, progress: number) => void
 ): Promise<PackageResult> {
+    // CRITICAL: The Intune .intunewin format requires a specific structure for the encrypted payload:
+    // 1. MAC (32 bytes) - HMAC-SHA256 of [IV + Ciphertext]
+    // 2. IV (16 bytes) - Aes-256-CBC Initialization Vector
+    // 3. Ciphertext (N bytes) - Encrypted content (Deflated ZIP)
+    // 
+    // The previous attempts failed because we were either missing the MAC prepended to the file,
+    // or calcualting it on the wrong data.
+
     onProgress?.('Reading file...', 0);
 
     // Read the source file
@@ -199,8 +207,8 @@ export async function createIntuneWinPackage(
 
     onProgress?.('Creating package structure...', 80);
 
-    // Create the encrypted file with IV prepended (Payload logic layer 1)
-    // Structure: [IV (16 bytes)] [Ciphertext (N bytes)]
+    // Create the intermediate buffer: [IV (16)] [Ciphertext (N)]
+    // We need this to calculate the HMAC over the combination.
     const ivCombinedPayload = new Uint8Array(iv.length + encryptedContent.byteLength);
     ivCombinedPayload.set(iv, 0);
     ivCombinedPayload.set(new Uint8Array(encryptedContent), iv.length);
@@ -210,9 +218,8 @@ export async function createIntuneWinPackage(
     // The MAC is computed over [IV + Ciphertext]
     const macResult = await computeHMAC(macKey, ivCombinedPayload);
 
-    // Create the FINAL encrypted file with MAC prepended (Payload logic layer 2)
-    // Structure: [MAC (32 bytes)] [IV (16 bytes)] [Ciphertext (N bytes)]
-    // This matches the official Microsoft structure.
+    // Create the final encrypted file: [MAC (32)] [IV (16)] [Ciphertext (N)]
+    // This matches the official Microsoft IntuneWinAppUtil structure.
     const finalEncryptedPayload = new Uint8Array(macResult.bytes.length + ivCombinedPayload.length);
     finalEncryptedPayload.set(macResult.bytes, 0);
     finalEncryptedPayload.set(ivCombinedPayload, macResult.bytes.length);
@@ -257,21 +264,16 @@ export async function createIntuneWinPackage(
     onProgress?.('Complete!', 100);
 
     // Debug logging for encryption details
+    // Debug logging for package info (excluding sensitive keys)
     console.log('[IntuneWin] Created package:', {
         unencryptedSize: unencryptedContentSize,
         finalPayloadSize: finalEncryptedPayload.byteLength,
         ivLength: iv.length,
-        macLength: macResult.bytes.length,
-        mac: macResult.base64,
-        iv: bytesToBase64(iv).substring(0, 10) + '...'
+        macLength: macResult.bytes.length
     });
 
     return {
         intunewinBlob,
-        // MAC FORMAT STRATEGY:
-        // Inner Zip: DEFLATE
-        // Payload: MAC (32) + IV (16) + Cipher
-        // This MUST match the full structure found in valid packages.
         encryptedPayload: new Blob([finalEncryptedPayload]),
         metadata
     };

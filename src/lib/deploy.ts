@@ -22,8 +22,8 @@ import { type IntuneWinMetadata } from './intunewin';
 export interface DeployOptions {
     accessToken: string;
     config: PackageConfig;
-    intunewinBlob: Blob; // Kept for reference or download if needed, but not for upload
-    encryptedPayload: Blob; // Added: The actual file to upload
+    intunewinBlob: Blob;
+    encryptedPayload: Blob;
     metadata: IntuneWinMetadata;
     onProgress?: (stage: Win32AppDeploymentStage, progress: number) => void;
 }
@@ -97,11 +97,7 @@ export async function deployToIntune({
         onProgress?.('committing', 80);
         const { encryptionInfo } = metadata.applicationInfo;
 
-        console.log('[Deploy] Committing file with metadata:', {
-            unencryptedContentSize: metadata.applicationInfo.unencryptedContentSize,
-            encryptedPayloadSize: encryptedPayload.size,
-            encryptionInfo
-        });
+        console.log('[Deploy] Committing file...');
 
         await commitFile(accessToken, appId, contentVersionId, fileId, {
             encryptionKey: encryptionInfo.encryptionKey,
