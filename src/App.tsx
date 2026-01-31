@@ -11,6 +11,7 @@ import { DetectionRules } from '@/components/DetectionRules';
 import { Assignments } from '@/components/Assignments';
 import { BuildSection } from '@/components/BuildSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { Package, Users } from 'lucide-react';
 
 function PackageEditor() {
@@ -65,7 +66,7 @@ function AppContent() {
 
       <footer className="border-t py-4 text-center text-sm text-muted-foreground">
         <p>
-          IntuneForge v1.1.0 • Open Source Win32 Packager •{' '}
+          IntuneForge v1.2.0 • Open Source Win32 Packager •{' '}
           <a
             href="https://github.com/realgarit/intuneforge"
             target="_blank"
@@ -84,7 +85,9 @@ function App() {
   return (
     <AuthProvider>
       <PackageProvider>
-        <AppContent />
+        <TooltipProvider>
+          <AppContent />
+        </TooltipProvider>
       </PackageProvider>
     </AuthProvider>
   );

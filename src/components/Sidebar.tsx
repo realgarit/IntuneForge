@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { usePackage } from '@/contexts/PackageContext';
 import { exportConfig, importConfig } from '@/lib/package-config';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function Sidebar() {
     const {
@@ -122,25 +123,40 @@ export function Sidebar() {
                     <CardTitle className="text-lg">Import / Export</CardTitle>
                 </CardHeader>
                 <CardContent className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 gap-2"
-                        onClick={handleImport}
-                    >
-                        <Upload className="h-4 w-4" />
-                        Import
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 gap-2"
-                        onClick={handleExport}
-                        disabled={!currentConfig}
-                    >
-                        <Download className="h-4 w-4" />
-                        Export
-                    </Button>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 gap-2"
+                                onClick={handleImport}
+                            >
+                                <Upload className="h-4 w-4" />
+                                Import
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Import a previously saved configuration file</p>
+                        </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 gap-2"
+                                onClick={handleExport}
+                                disabled={!currentConfig}
+                            >
+                                <Download className="h-4 w-4" />
+                                Export
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Export the current configuration for backup or sharing</p>
+                        </TooltipContent>
+                    </Tooltip>
                 </CardContent>
             </Card>
         </aside>
