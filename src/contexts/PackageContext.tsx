@@ -16,6 +16,7 @@ interface PackageContextType {
     additionalFiles: File[];
     setCurrentConfig: (config: PackageConfig | null) => void;
     updateCurrentConfig: (updates: Partial<PackageConfig>) => void;
+    addConfigs: (newConfigs: PackageConfig[]) => void;
     createNewConfig: () => PackageConfig;
     saveCurrentConfig: () => void;
     deleteConfig: (id: string) => void;
@@ -83,6 +84,21 @@ export function PackageProvider({ children }: { children: React.ReactNode }) {
         });
     }, [currentConfig]);
 
+    const addConfigs = useCallback((newConfigs: PackageConfig[]) => {
+        setConfigs(prev => {
+            const updated = [...prev];
+            newConfigs.forEach(config => {
+                const index = updated.findIndex(c => c.id === config.id);
+                if (index >= 0) {
+                    updated[index] = config;
+                } else {
+                    updated.push(config);
+                }
+            });
+            return updated;
+        });
+    }, []);
+
     const deleteConfig = useCallback((id: string) => {
         setConfigs(prev => prev.filter(c => c.id !== id));
         if (currentConfig?.id === id) {
@@ -116,6 +132,7 @@ export function PackageProvider({ children }: { children: React.ReactNode }) {
                 additionalFiles,
                 setCurrentConfig,
                 updateCurrentConfig,
+                addConfigs,
                 createNewConfig,
                 saveCurrentConfig,
                 deleteConfig,

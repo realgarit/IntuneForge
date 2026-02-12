@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Loader2, Download, LayoutGrid, ListFilter, ArrowLeft, Check } from 'lucide-react';
+import { Search, Loader2, Download, LayoutGrid, ListFilter, ArrowLeft, Check, Hammer } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from "@/components/ui/label";
@@ -12,15 +12,28 @@ import { APP_CATALOG } from '@/lib/app-catalog';
 import type { CatalogApp } from '@/lib/app-catalog';
 import { cn } from '@/lib/utils';
 
+import { usePackage } from '@/contexts/PackageContext';
+import type { PackageAssignment } from '@/lib/package-config';
+
 interface AppCatalogProps {
     onSelect: (app: CatalogApp, file: File) => void;
+    onBulkSelect?: (apps: { app: CatalogApp, file: File }[]) => void;
 }
 
-export function AppCatalog({ onSelect }: AppCatalogProps) {
+export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
+    const { addConfigs } = usePackage();
     const [search, setSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [downloading, setDownloading] = useState<string | null>(null);
+    const [bulkDownloading, setBulkDownloading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Multi-select state
+    const [selectedAppIds, setSelectedAppIds] = useState<Set<string>>(new Set());
+
+    // Auto-assignment state
+    const [autoAssign, setAutoAssign] = useState<boolean>(false);
+    const [assignmentTarget, setAssignmentTarget] = useState<'all-users' | 'all-devices'>('all-devices');
 
     // Customization State
     const [view, setView] = useState<'list' | 'customize'>('list');
@@ -43,7 +56,7 @@ export function AppCatalog({ onSelect }: AppCatalogProps) {
             setView('customize');
             setError(null);
         } else {
-            downloadApp(app);
+            downloadApp(app).catch(() => { /* error handled in downloadApp */ });
         }
     };
 
@@ -57,8 +70,19 @@ export function AppCatalog({ onSelect }: AppCatalogProps) {
         setActiveCustomizations(newSet);
     };
 
-    const downloadApp = async (app: CatalogApp, customizations: Set<string> = new Set()) => {
-        setDownloading(app.id);
+    const toggleAppSelection = (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        const newSet = new Set(selectedAppIds);
+        if (newSet.has(id)) {
+            newSet.delete(id);
+        } else {
+            newSet.add(id);
+        }
+        setSelectedAppIds(newSet);
+    };
+
+    const downloadApp = async (app: CatalogApp, customizations: Set<string> = new Set(), silent = false) => {
+        if (!silent) setDownloading(app.id);
         setError(null);
         try {
             // Use the proxy to download the file
@@ -87,13 +111,72 @@ export function AppCatalog({ onSelect }: AppCatalogProps) {
                 installCommand: finalInstallCommand
             };
 
-            onSelect(appToPackage, file);
+            if (!silent) {
+                onSelect(appToPackage, file);
+            }
+            return { app: appToPackage, file };
         } catch (err) {
             console.error(err);
-            setError(err instanceof Error ? err.message : 'Download failed');
-            // If we were in customize view, stay there to show error
+            if (!silent) setError(err instanceof Error ? err.message : 'Download failed');
+            throw err;
         } finally {
-            setDownloading(null);
+            if (!silent) setDownloading(null);
+        }
+    };
+
+    const handleBulkDownload = async () => {
+        setBulkDownloading(true);
+        setError(null);
+        const appsToDownload = APP_CATALOG.filter(a => selectedAppIds.has(a.id));
+        const results: { app: CatalogApp, file: File }[] = [];
+
+        try {
+            for (const app of appsToDownload) {
+                const result = await downloadApp(app, new Set(), true);
+                results.push(result);
+            }
+
+            // Create configurations
+            const newConfigs = results.map(({ app, file }) => {
+                const assignments: PackageAssignment[] = autoAssign ? [
+                    {
+                        target: assignmentTarget,
+                        intent: 'required',
+                        notifications: 'showAll'
+                    }
+                ] : [];
+
+                return {
+                    id: crypto.randomUUID(),
+                    name: app.name,
+                    displayName: app.name,
+                    publisher: app.publisher,
+                    description: app.description,
+                    version: app.version,
+                    setupFileName: app.filename,
+                    installCommandLine: app.installCommand,
+                    uninstallCommandLine: app.uninstallCommand,
+                    detectionRules: app.detectionRules,
+                    packageType: app.filename.toLowerCase().endsWith('.msi') ? 'MSI' : 'EXE',
+                    sourceType: 'url' as const,
+                    sourceUrl: app.downloadUrl,
+                    installBehavior: 'system' as const,
+                    restartBehavior: 'suppress' as const,
+                    assignments,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                };
+            });
+
+            addConfigs(newConfigs);
+            setSelectedAppIds(new Set());
+            if (onBulkSelect) {
+                onBulkSelect(results);
+            }
+        } catch (err) {
+            setError('Bulk download failed. Some apps might have failed to download.');
+        } finally {
+            setBulkDownloading(false);
         }
     };
 
@@ -164,7 +247,7 @@ export function AppCatalog({ onSelect }: AppCatalogProps) {
                         Cancel
                     </Button>
                     <Button
-                        onClick={() => downloadApp(selectedApp, activeCustomizations)}
+                        onClick={() => downloadApp(selectedApp, activeCustomizations).catch(() => {})}
                         disabled={!!downloading}
                         className="gap-2"
                     >
@@ -222,15 +305,27 @@ export function AppCatalog({ onSelect }: AppCatalogProps) {
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-                    <div className="relative">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Search apps..."
-                            className="pl-8"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
+                <div className="flex-1 flex flex-col gap-4 overflow-hidden relative">
+                    <div className="flex gap-2">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search apps..."
+                                className="pl-8"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
+                        {selectedAppIds.size > 0 && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedAppIds(new Set())}
+                                className="h-10"
+                            >
+                                Clear ({selectedAppIds.size})
+                            </Button>
+                        )}
                     </div>
 
                     {error && (
@@ -243,30 +338,64 @@ export function AppCatalog({ onSelect }: AppCatalogProps) {
                         {filteredApps.map((app) => (
                             <div
                                 key={app.id}
-                                className="flex flex-col p-4 border rounded-lg hover:bg-muted/50 transition-colors space-y-3 cursor-pointer group"
+                                className={cn(
+                                    "relative flex flex-col p-4 border rounded-lg hover:bg-muted/50 transition-all space-y-3 cursor-pointer group",
+                                    selectedAppIds.has(app.id) && "border-primary bg-primary/5 ring-1 ring-primary/20"
+                                )}
                                 onClick={() => handleAppClick(app)}
                             >
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="font-semibold group-hover:text-primary transition-colors">{app.name}</h3>
-                                        <p className="text-sm text-muted-foreground">{app.publisher}</p>
+                                <div
+                                    className="absolute top-3 left-3 z-10"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer accent-primary"
+                                        checked={selectedAppIds.has(app.id)}
+                                        onChange={(e) => {
+                                            const newSet = new Set(selectedAppIds);
+                                            if (e.target.checked) {
+                                                newSet.add(app.id);
+                                            } else {
+                                                newSet.delete(app.id);
+                                            }
+                                            setSelectedAppIds(newSet);
+                                        }}
+                                        data-testid={`app-checkbox-${app.id}`}
+                                        aria-label={`Select ${app.name}`}
+                                    />
+                                </div>
+
+                                <div className="flex justify-between items-start pl-7">
+                                    <div className="flex gap-3">
+                                        {app.iconUrl ? (
+                                            <img src={app.iconUrl} alt="" className="h-10 w-10 object-contain rounded" />
+                                        ) : (
+                                            <div className="h-10 w-10 bg-muted rounded flex items-center justify-center">
+                                                <Hammer className="h-5 w-5 text-muted-foreground" />
+                                            </div>
+                                        )}
+                                        <div>
+                                            <h3 className="font-semibold group-hover:text-primary transition-colors leading-tight">{app.name}</h3>
+                                            <p className="text-sm text-muted-foreground">{app.publisher}</p>
+                                        </div>
                                     </div>
                                     <div className="text-xs bg-secondary px-2 py-1 rounded">
                                         {app.version}
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 pl-7">
                                      <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
                                         {app.category}
                                     </span>
                                     {app.customizations && app.customizations.length > 0 && (
                                          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 border border-blue-500/20 flex items-center gap-1">
-                                            <Check className="h-3 w-3" />
+                                            <Check className="h-3.5 w-3.5" />
                                             Customizable
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-sm text-muted-foreground flex-1 line-clamp-2">
+                                <p className="text-sm text-muted-foreground flex-1 line-clamp-2 pl-7">
                                     {app.description}
                                 </p>
                                 <Button
@@ -300,6 +429,64 @@ export function AppCatalog({ onSelect }: AppCatalogProps) {
                             </div>
                         )}
                     </div>
+
+                    {/* Bulk Actions Footer */}
+                    {selectedAppIds.size > 0 && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border rounded-xl p-4 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+                            <div className="flex flex-col gap-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm">
+                                            {selectedAppIds.size}
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-sm">Apps Selected</p>
+                                            <p className="text-xs text-muted-foreground">Ready for bulk packaging</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4 bg-muted/50 px-4 py-2 rounded-lg border">
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                id="auto-assign"
+                                                checked={autoAssign}
+                                                onChange={(e) => setAutoAssign(e.target.checked)}
+                                                className="h-4 w-4 rounded border-gray-300 accent-primary"
+                                            />
+                                            <Label htmlFor="auto-assign" className="text-xs font-medium cursor-pointer">Auto-Assign</Label>
+                                        </div>
+                                        {autoAssign && (
+                                            <select
+                                                value={assignmentTarget}
+                                                onChange={(e) => setAssignmentTarget(e.target.value as any)}
+                                                className="text-xs bg-transparent border-none focus:ring-0 font-semibold text-primary cursor-pointer"
+                                            >
+                                                <option value="all-devices">All Devices</option>
+                                                <option value="all-users">All Users</option>
+                                            </select>
+                                        )}
+                                    </div>
+                                </div>
+                                <Button
+                                    className="w-full gap-2 shadow-lg shadow-primary/20"
+                                    onClick={handleBulkDownload}
+                                    disabled={bulkDownloading}
+                                >
+                                    {bulkDownloading ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            Downloading & Packaging...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Download className="h-4 w-4" />
+                                            Package {selectedAppIds.size} Application{selectedAppIds.size > 1 ? 's' : ''}
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
