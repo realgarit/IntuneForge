@@ -81,7 +81,7 @@ async function computeSHA256(data: BufferSource): Promise<string> {
 async function computeHMAC(key: Uint8Array, data: BufferSource): Promise<{ base64: string; bytes: Uint8Array }> {
     const cryptoKey = await crypto.subtle.importKey(
         'raw',
-        key as any,
+        key,
         { name: 'HMAC', hash: 'SHA-256' },
         false,
         ['sign']
@@ -104,14 +104,14 @@ async function encryptAES256CBC(
 ): Promise<ArrayBuffer> {
     const cryptoKey = await crypto.subtle.importKey(
         'raw',
-        key as any,
+        key,
         { name: 'AES-CBC' },
         false,
         ['encrypt']
     );
 
     return await crypto.subtle.encrypt(
-        { name: 'AES-CBC', iv: iv as any },
+        { name: 'AES-CBC', iv },
         cryptoKey,
         data
     );

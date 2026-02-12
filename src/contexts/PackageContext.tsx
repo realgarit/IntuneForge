@@ -29,17 +29,11 @@ interface PackageContextType {
 const PackageContext = createContext<PackageContextType | undefined>(undefined);
 
 export function PackageProvider({ children }: { children: React.ReactNode }) {
-    const [configs, setConfigs] = useState<PackageConfig[]>([]);
-    const [templates, setTemplates] = useState<PackageConfig[]>([]);
+    const [configs, setConfigs] = useState<PackageConfig[]>(() => loadConfigs());
+    const [templates, setTemplates] = useState<PackageConfig[]>(() => loadTemplates());
     const [currentConfig, setCurrentConfig] = useState<PackageConfig | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
-
-    // Load saved configs on mount
-    useEffect(() => {
-        setConfigs(loadConfigs());
-        setTemplates(loadTemplates());
-    }, []);
 
     // Save configs whenever they change
     useEffect(() => {
