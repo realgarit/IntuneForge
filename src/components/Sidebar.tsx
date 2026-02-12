@@ -1,17 +1,56 @@
 import { Plus, LayoutDashboard, Library, Package, Settings, ChevronRight, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 import { usePackage } from '@/contexts/PackageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { SettingsDialog } from '@/components/SettingsDialog';
 import { cn } from '@/lib/utils';
 import type { View } from '@/App';
 
 interface SidebarProps {
     currentView: View;
     onNavigate: (view: View) => void;
+    settingsOpen?: boolean;
+    onSettingsOpenChange?: (open: boolean) => void;
 }
 
-export function Sidebar({ currentView, onNavigate }: SidebarProps) {
+export function Sidebar({
+    currentView,
+    onNavigate,
+    settingsOpen: propsSettingsOpen,
+    onSettingsOpenChange
+}: SidebarProps) {
+    const { clientId, tenantId, isAuthenticated } = useAuth();
+    const [showSetupCue, setShowSetupCue] = useState(false);
+    const [internalSettingsOpen, setInternalSettingsOpen] = useState(false);
+
+    const settingsOpen = propsSettingsOpen !== undefined ? propsSettingsOpen : internalSettingsOpen;
+    const setSettingsOpen = onSettingsOpenChange || setInternalSettingsOpen;
+
+    // Check if visual cue should be shown
+    useState(() => {
+        const isDismissed = localStorage.getItem('settings-cue-dismissed') === 'true';
+        const isSetup = !!clientId && !!tenantId;
+
+        if (!isSetup && !isDismissed) {
+            setTimeout(() => setShowSetupCue(true), 1000);
+        }
+    });
+
+    const handleDismissCue = () => {
+        setShowSetupCue(false);
+        localStorage.setItem('settings-cue-dismissed', 'true');
+    };
+
+    const handleOpenSettings = (open: boolean) => {
+        setSettingsOpen(open);
+        if (open) {
+            handleDismissCue();
+        }
+    };
     const {
         createNewConfig,
+        configs
     } = usePackage();
 
     const navItems = [
@@ -78,45 +117,85 @@ export function Sidebar({ currentView, onNavigate }: SidebarProps) {
                         Resources
                     </p>
                     <div className="space-y-2">
-                        <button
-                            onClick={() => onNavigate('settings')}
-                            className={cn(
-                                "w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 text-sm font-bold group",
-                                currentView === 'settings'
-                                    ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20"
-                                    : "text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:translate-x-1"
+                        <div className="relative">
+                            {showSetupCue && (
+                                <div className="absolute bottom-full left-0 mb-4 w-64 p-4 rounded-xl bg-popover border border-border shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2">
+                                    <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-popover border-b border-r border-border rotate-45" />
+                                    <div className="space-y-2">
+                                        <p className="font-semibold text-sm">Start Here!</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Configure your Azure AD environment settings to get started.
+                                        </p>
+                                        <Button
+                                            size="sm"
+                                            className="w-full text-xs h-7"
+                                            onClick={handleDismissCue}
+                                        >
+                                            Got it
+                                        </Button>
+                                    </div>
+                                </div>
                             )}
-                        >
-                            <Settings className={cn(
-                                "h-5 w-5 transition-transform duration-300",
-                                currentView === 'settings' ? "rotate-90" : "group-hover:rotate-45"
-                            )} />
-                            Settings
-                        </button>
+                            <SettingsDialog
+                                open={settingsOpen}
+                                onOpenChange={handleOpenSettings}
+                                trigger={
+                                    <button
+                                        className={cn(
+                                            "w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 text-sm font-bold group relative",
+                                            currentView === 'settings' || settingsOpen
+                                                ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20"
+                                                : "text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:translate-x-1",
+                                            showSetupCue && "animate-bounce border-primary/50 text-primary shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Settings className={cn(
+                                                "h-5 w-5 transition-transform duration-300",
+                                                currentView === 'settings' || settingsOpen ? "rotate-90" : "group-hover:rotate-45"
+                                            )} />
+                                            Settings
+                                        </div>
+                                        {showSetupCue && (
+                                            <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-primary rounded-full animate-ping" />
+                                        )}
+                                    </button>
+                                }
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div className="mt-auto pt-6 space-y-4">
                 <div className="p-5 bg-card/50 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Settings className="h-12 w-12" />
-                    </div>
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
                         <Activity className="h-3 w-3 text-primary" />
-                        System Health
+                        Environment Status
                     </h4>
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-foreground/80">Core Engine</span>
+                            <span className="text-[11px] font-bold text-foreground/80">Microsoft Graph</span>
                             <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-black text-primary px-1.5 py-0.5 bg-primary/10 rounded-md border border-primary/10 animate-pulse">LIVE</span>
-                                <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+                                <span className={cn(
+                                    "text-[9px] font-black px-1.5 py-0.5 rounded-md border",
+                                    isAuthenticated
+                                        ? "text-green-500 bg-green-500/10 border-green-500/10"
+                                        : "text-amber-500 bg-amber-500/10 border-amber-500/10"
+                                )}>
+                                    {isAuthenticated ? 'CONNECTED' : 'GUEST'}
+                                </span>
+                                <div className={cn(
+                                    "h-2 w-2 rounded-full",
+                                    isAuthenticated
+                                        ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
+                                        : "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]"
+                                )} />
                             </div>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-foreground/80">Catalog Sync</span>
-                            <span className="text-[9px] font-black text-muted-foreground">OK</span>
+                            <span className="text-[11px] font-bold text-foreground/80">Storage</span>
+                            <span className="text-[9px] font-black text-muted-foreground uppercase">{configs.length > 0 ? 'Active' : 'Empty'}</span>
                         </div>
                     </div>
                 </div>

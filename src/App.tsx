@@ -42,22 +42,15 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Header
-        settingsOpen={settingsOpen}
-        onSettingsOpenChange={setSettingsOpen}
-      />
+      <Header />
 
       <main className="flex-1 container mx-auto px-6 py-8 mb-10">
         <div className="flex flex-col lg:flex-row gap-8 min-h-[calc(100vh-10rem)]">
           <Sidebar
             currentView={currentView}
-            onNavigate={(view) => {
-              if (view === 'settings') {
-                setSettingsOpen(true);
-              } else {
-                setCurrentView(view);
-              }
-            }}
+            onNavigate={setCurrentView}
+            settingsOpen={settingsOpen}
+            onSettingsOpenChange={setSettingsOpen}
           />
           <div className="flex-1 flex flex-col">
             {renderView()}
