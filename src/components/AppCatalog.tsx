@@ -70,17 +70,6 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
         setActiveCustomizations(newSet);
     };
 
-    const toggleAppSelection = (id: string, e: React.MouseEvent) => {
-        e.stopPropagation();
-        const newSet = new Set(selectedAppIds);
-        if (newSet.has(id)) {
-            newSet.delete(id);
-        } else {
-            newSet.add(id);
-        }
-        setSelectedAppIds(newSet);
-    };
-
     const downloadApp = async (app: CatalogApp, customizations: Set<string> = new Set(), silent = false) => {
         if (!silent) setDownloading(app.id);
         setError(null);
@@ -137,7 +126,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
             }
 
             // Create configurations
-            const newConfigs = results.map(({ app, file }) => {
+            const newConfigs = results.map(({ app }) => {
                 const assignments: PackageAssignment[] = autoAssign ? [
                     {
                         target: assignmentTarget,
@@ -157,7 +146,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                     installCommandLine: app.installCommand,
                     uninstallCommandLine: app.uninstallCommand,
                     detectionRules: app.detectionRules,
-                    packageType: app.filename.toLowerCase().endsWith('.msi') ? 'MSI' : 'EXE',
+                    packageType: (app.filename.toLowerCase().endsWith('.msi') ? 'MSI' : 'EXE') as 'MSI' | 'EXE',
                     sourceType: 'url' as const,
                     sourceUrl: app.downloadUrl,
                     installBehavior: 'system' as const,
