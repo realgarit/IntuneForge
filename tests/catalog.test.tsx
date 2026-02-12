@@ -61,7 +61,7 @@ describe('AppCatalog', () => {
         });
 
         const buttons = screen.getAllByRole('button');
-        const selectButtons = buttons.filter(b => b.textContent?.includes('Package Now'));
+        const selectButtons = buttons.filter(b => b.textContent?.includes('Select & Package'));
 
         fireEvent.click(selectButtons[0]);
 
@@ -89,7 +89,7 @@ describe('AppCatalog', () => {
         });
 
         const buttons = screen.getAllByRole('button');
-        const selectButtons = buttons.filter(b => b.textContent?.includes('Package Now'));
+        const selectButtons = buttons.filter(b => b.textContent?.includes('Select & Package'));
         fireEvent.click(selectButtons[0]);
 
         await waitFor(() => {

@@ -1,5 +1,12 @@
 import type { DetectionRule } from './package-config';
 
+export interface AppCustomization {
+    id: string;
+    label: string;
+    description?: string;
+    arg: string;
+}
+
 export interface CatalogApp {
     id: string;
     name: string;
@@ -12,6 +19,7 @@ export interface CatalogApp {
     uninstallCommand: string;
     detectionRules: DetectionRule[];
     category: string;
+    customizations?: AppCustomization[];
 }
 
 export const APP_CATALOG: CatalogApp[] = [
@@ -48,7 +56,14 @@ export const APP_CATALOG: CatalogApp[] = [
             detectionType: 'exists',
             check32BitOn64System: false
         }],
-        category: 'Browsers'
+        category: 'Browsers',
+        customizations: [
+            {
+                id: 'no-desktop-shortcut',
+                label: 'No Desktop Shortcut',
+                arg: 'DESKTOP_SHORTCUT=false'
+            }
+        ]
     },
     {
         id: 'npp',
@@ -140,7 +155,14 @@ export const APP_CATALOG: CatalogApp[] = [
             detectionType: 'exists',
             check32BitOn64System: false
         }],
-        category: 'Development'
+        category: 'Development',
+        customizations: [
+            {
+                id: 'add-context-menu',
+                label: 'Add "Open with Code" to Context Menu',
+                arg: '/MERGETASKS="!runcode,desktopicon,quicklaunchicon,addcontextmenufiles,addcontextmenufolders"'
+            }
+        ]
     },
     {
         id: 'zoom',
@@ -156,7 +178,19 @@ export const APP_CATALOG: CatalogApp[] = [
             type: 'msi',
             productCode: '{PRODUCT-CODE-GUID}' // Note: Zoom MSI Product Code changes with versions
         }],
-        category: 'Communication'
+        category: 'Communication',
+        customizations: [
+            {
+                id: 'disable-auto-update',
+                label: 'Disable Auto Update',
+                arg: 'ZoomAutoUpdate="false"'
+            },
+            {
+                id: 'no-desktop-icon',
+                label: 'No Desktop Icon',
+                arg: 'ZConfig="DesktopIcon=0"'
+            }
+        ]
     },
     {
         id: 'git',
@@ -233,5 +267,24 @@ export const APP_CATALOG: CatalogApp[] = [
             check32BitOn64System: false
         }],
         category: 'Utilities'
+    },
+    {
+        id: 'powertoys',
+        name: 'Microsoft PowerToys',
+        publisher: 'Microsoft',
+        description: 'Microsoft PowerToys is a set of utilities for power users to tune and streamline their Windows experience.',
+        version: 'Latest',
+        category: 'Utilities',
+        downloadUrl: 'https://github.com/microsoft/PowerToys/releases/download/v0.79.0/PowerToysSetup-0.79.0-x64.exe', // Hardcoded version for safety
+        filename: 'PowerToysSetup.exe',
+        installCommand: 'PowerToysSetup.exe /install /quiet /norestart',
+        uninstallCommand: '%ProgramFiles%\\PowerToys\\uninstall.exe /quiet',
+        detectionRules: [{
+            type: 'file',
+            path: '%ProgramFiles%\\PowerToys',
+            fileOrFolderName: 'PowerToys.exe',
+            detectionType: 'exists',
+            check32BitOn64System: false
+        }]
     }
 ];

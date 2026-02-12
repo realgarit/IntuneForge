@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Search, Loader2, Download, Filter, Check, Plus } from 'lucide-react';
+import { Search, Loader2, Download, Filter, Check, Plus, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
     DialogHeader,
     DialogTitle,
@@ -22,6 +23,11 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
     const [selectedApps, setSelectedApps] = useState<string[]>([]);
     const [category, setCategory] = useState<string | null>(null);
 
+    // Customization State (from remote)
+    const [view, setView] = useState<'list' | 'customize'>('list');
+    const [selectedApp, setSelectedApp] = useState<CatalogApp | null>(null);
+    const [activeCustomizations, setActiveCustomizations] = useState<Set<string>>(new Set());
+
     // Get unique categories
     const categories = Array.from(new Set(APP_CATALOG.map(app => app.category))).sort();
 
@@ -40,7 +46,30 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
         );
     };
 
-    const handleSelect = async (app: CatalogApp) => {
+    const handleAppClick = (app: CatalogApp) => {
+        // If customizations exist, go to customize view (single selection flow)
+        if (app.customizations && app.customizations.length > 0) {
+            setSelectedApp(app);
+            setActiveCustomizations(new Set());
+            setView('customize');
+            setError(null);
+        } else {
+            // Otherwise, just select/download
+            downloadApp(app);
+        }
+    };
+
+    const toggleCustomization = (id: string) => {
+        const newSet = new Set(activeCustomizations);
+        if (newSet.has(id)) {
+            newSet.delete(id);
+        } else {
+            newSet.add(id);
+        }
+        setActiveCustomizations(newSet);
+    };
+
+    const downloadApp = async (app: CatalogApp, customizations: Set<string> = new Set()) => {
         setDownloading(app.id);
         setError(null);
         try {
@@ -55,7 +84,22 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
             const blob = await response.blob();
             const file = new File([blob], app.filename, { type: blob.type });
 
-            onSelect(app, file);
+            // Apply customizations to install command
+            let finalInstallCommand = app.installCommand;
+            if (app.customizations) {
+                app.customizations.forEach(c => {
+                    if (customizations.has(c.id)) {
+                        finalInstallCommand += ` ${c.arg}`;
+                    }
+                });
+            }
+
+            const appToPackage = {
+                ...app,
+                installCommand: finalInstallCommand
+            };
+
+            onSelect(appToPackage, file);
         } catch (err) {
             console.error(err);
             setError(err instanceof Error ? err.message : 'Download failed');
@@ -70,6 +114,94 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
             onBulkSelect(apps);
         }
     };
+
+    if (view === 'customize' && selectedApp) {
+        return (
+            <div className="flex flex-col h-[70vh] -mx-6 -my-4 p-6 overflow-hidden">
+                <DialogHeader className="mb-4">
+                    <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setView('list')}>
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                        <div>
+                            <DialogTitle>Customize {selectedApp.name}</DialogTitle>
+                            <DialogDescription>
+                                Configure installation options before packaging.
+                            </DialogDescription>
+                        </div>
+                    </div>
+                </DialogHeader>
+
+                <div className="flex-1 overflow-y-auto space-y-6 p-1">
+                    <div className="bg-muted/30 p-4 rounded-lg border">
+                        <h4 className="font-medium mb-2">Default Install Command</h4>
+                        <code className="text-xs bg-black/80 text-white p-2 rounded block font-mono break-all">
+                            {selectedApp.installCommand}
+                        </code>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h4 className="font-medium">Available Customizations</h4>
+                        {selectedApp.customizations?.map((customization) => (
+                            <div key={customization.id} className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                                <div className="flex items-center h-5">
+                                    <input
+                                        type="checkbox"
+                                        id={customization.id}
+                                        checked={activeCustomizations.has(customization.id)}
+                                        onChange={() => toggleCustomization(customization.id)}
+                                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer accent-primary"
+                                    />
+                                </div>
+                                <div className="grid gap-1.5 leading-none">
+                                    <Label
+                                        htmlFor={customization.id}
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                    >
+                                        {customization.label}
+                                    </Label>
+                                    {customization.description && (
+                                        <p className="text-sm text-muted-foreground">
+                                            {customization.description}
+                                        </p>
+                                    )}
+                                    <p className="text-xs text-muted-foreground font-mono mt-1">
+                                        Appends: {customization.arg}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="pt-4 mt-auto border-t flex justify-end gap-2">
+                     {error && (
+                        <p className="text-sm text-destructive self-center mr-auto">{error}</p>
+                    )}
+                    <Button variant="outline" onClick={() => setView('list')}>
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={() => downloadApp(selectedApp, activeCustomizations)}
+                        disabled={!!downloading}
+                        className="gap-2"
+                    >
+                        {downloading === selectedApp.id ? (
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Downloading...
+                            </>
+                        ) : (
+                            <>
+                                <Download className="h-4 w-4" />
+                                Package with Selection
+                            </>
+                        )}
+                    </Button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-[70vh] gap-6">
@@ -167,7 +299,15 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                                 {app.version}
                                             </div>
                                         </div>
-                                        <p className="text-xs text-muted-foreground">{app.publisher}</p>
+                                        <div className="flex items-center gap-2">
+                                            <p className="text-xs text-muted-foreground">{app.publisher}</p>
+                                            {app.customizations && app.customizations.length > 0 && (
+                                                <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                                    <Check className="h-3 w-3" />
+                                                    Customizable
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -177,7 +317,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
 
                                 <div className="flex items-center gap-2 pt-2">
                                     <Button
-                                        onClick={() => handleSelect(app)}
+                                        onClick={() => handleAppClick(app)}
                                         disabled={!!downloading}
                                         className="flex-1 gap-2"
                                         variant="outline"
@@ -191,7 +331,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                         ) : (
                                             <>
                                                 <Download className="h-3 w-3" />
-                                                Package Now
+                                                {app.customizations?.length ? 'Customize & Package' : 'Package Now'}
                                             </>
                                         )}
                                     </Button>
