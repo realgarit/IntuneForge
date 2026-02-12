@@ -146,10 +146,10 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
             };
 
             if (!silent) {
-                onSelect(appToPackage as any, file);
+                onSelect(appToPackage as unknown as CatalogApp, file);
             }
             return { app: appToPackage, file };
-        } catch (err) {
+        } catch (err: unknown) {
             console.error(err);
             if (!silent) setError(err instanceof Error ? err.message : 'Download failed');
             throw err;
@@ -209,7 +209,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
             if (onBulkSelect) {
                 onBulkSelect(results);
             }
-        } catch (err) {
+        } catch {
             setError('Bulk download failed. Some apps might have failed to download.');
         } finally {
             setBulkDownloading(false);
@@ -832,7 +832,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                                 {autoAssign && (
                                                     <select
                                                         value={assignmentTarget}
-                                                        onChange={(e) => setAssignmentTarget(e.target.value as any)}
+                                                        onChange={(e) => setAssignmentTarget(e.target.value as 'all-users' | 'all-devices')}
                                                         className="text-xs bg-primary/10 rounded-lg px-3 py-1.5 border-none focus:ring-2 focus:ring-primary/20 font-black text-primary cursor-pointer outline-none transition-all hover:bg-primary/20 ml-2 shadow-sm"
                                                     >
                                                         <option value="all-devices">All Devices</option>

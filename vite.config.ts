@@ -11,7 +11,7 @@ import { IncomingMessage, ServerResponse } from 'http'
 const azureBlobProxy = () => ({
   name: 'azure-blob-proxy',
   configureServer(server: ViteDevServer) {
-    server.middlewares.use('/api/proxy', (req: IncomingMessage, res: ServerResponse, _next: any) => {
+    server.middlewares.use('/api/proxy', (req: IncomingMessage, res: ServerResponse) => {
       // Parse the target URL from the query parameter
       // req.url is the path relative to the mount point (e.g. /?url=...)
       // We construct a dummy base to parse it easily
@@ -41,8 +41,9 @@ const azureBlobProxy = () => ({
 
         // Filter out headers that might cause issues (like Origin/Referer if strict)
         if (options.headers) {
-          delete (options.headers as any).origin;
-          delete (options.headers as any).referer;
+          const headers = options.headers as Record<string, string | string[] | undefined>;
+          delete headers.origin;
+          delete headers.referer;
           // delete (options.headers as any).host; // construct handled above
         }
 
@@ -58,10 +59,11 @@ const azureBlobProxy = () => ({
         });
 
         req.pipe(proxyReq);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('[AzureProxy] Invalid Target URL:', targetUrl);
         res.statusCode = 400;
-        res.end(`Invalid Target URL: ${error.message}`);
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        res.end(`Invalid Target URL: ${message}`);
       }
     });
   },

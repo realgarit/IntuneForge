@@ -1,5 +1,3 @@
-import { vi } from 'vitest';
-
 // Mock ResizeObserver which is needed by Radix Dialog
 global.ResizeObserver = class ResizeObserver {
   observe() {}

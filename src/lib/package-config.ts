@@ -83,6 +83,20 @@ export interface PackageConfig {
     closeAppBeforeInstall?: boolean;
     skipIfRunning?: boolean;
     notes?: string;
+
+    // Scripts
+    preInstallScript?: string;
+    postInstallScript?: string;
+
+    // Requirements
+    requirements?: PackageRequirements;
+}
+
+export interface PackageRequirements {
+    architecture: 'x86' | 'x64' | 'both';
+    minimumOs: string;
+    diskSpaceMB?: number;
+    memoryMB?: number;
 }
 
 /**
@@ -121,6 +135,14 @@ export function createEmptyPackageConfig(): PackageConfig {
         closeAppBeforeInstall: false,
         skipIfRunning: false,
         notes: '',
+        preInstallScript: '',
+        postInstallScript: '',
+        requirements: {
+            architecture: 'both',
+            minimumOs: 'Windows 10 1607',
+            diskSpaceMB: 0,
+            memoryMB: 0
+        }
     };
 }
 

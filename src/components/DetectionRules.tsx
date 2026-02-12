@@ -105,62 +105,66 @@ export function DetectionRules() {
     };
 
     return (
-        <Card>
+        <Card className="border-border/40 shadow-sm bg-card/50">
             <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Search className="h-5 w-5" />
-                    Detection Rules
+                <CardTitle className="flex items-center gap-2 text-xl font-black">
+                    <Search className="h-5 w-5 text-primary" />
+                    Detection Logic
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="font-medium">
                     Define how Intune should detect if the application is installed
                 </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DetectionRuleType)}>
-                    <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="registry" className="gap-2">
-                            <Database className="h-4 w-4" />
-                            <span className="hidden sm:inline">Registry</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="file" className="gap-2">
-                            <FolderSearch className="h-4 w-4" />
-                            <span className="hidden sm:inline">File</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="script" className="gap-2">
-                            <Code className="h-4 w-4" />
-                            <span className="hidden sm:inline">Script</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="msi" className="gap-2">
-                            <FileCode className="h-4 w-4" />
-                            <span className="hidden sm:inline">MSI</span>
-                        </TabsTrigger>
-                    </TabsList>
+            <CardContent className="space-y-8">
+                <div className="bg-muted/40 p-1.5 rounded-2xl border border-border/40">
+                    <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DetectionRuleType)}>
+                        <TabsList className="grid w-full grid-cols-4 bg-transparent h-11">
+                            <TabsTrigger value="registry" className="gap-2 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md font-bold">
+                                <Database className="h-4 w-4" />
+                                <span className="hidden sm:inline">Registry</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="file" className="gap-2 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md font-bold">
+                                <FolderSearch className="h-4 w-4" />
+                                <span className="hidden sm:inline">File</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="script" className="gap-2 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md font-bold">
+                                <Code className="h-4 w-4" />
+                                <span className="hidden sm:inline">Script</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="msi" className="gap-2 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md font-bold">
+                                <FileCode className="h-4 w-4" />
+                                <span className="hidden sm:inline">MSI</span>
+                            </TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                </div>
 
-                    <div className="mt-4">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => addRule(activeTab)}
-                            className="gap-2"
-                        >
-                            <Plus className="h-4 w-4" />
-                            Add {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Rule
-                        </Button>
-                    </div>
-                </Tabs>
+                <div className="flex justify-center">
+                    <Button
+                        variant="outline"
+                        onClick={() => addRule(activeTab)}
+                        className="gap-3 rounded-2xl border-dashed border-2 px-10 h-14 font-black hover:bg-primary/5 hover:border-primary/50 transition-all text-muted-foreground hover:text-primary active:scale-95"
+                    >
+                        <Plus className="h-5 w-5" />
+                        Add New {activeTab.toUpperCase()} Rule
+                    </Button>
+                </div>
 
                 {/* Display existing rules */}
                 <div className="space-y-4">
                     {currentConfig.detectionRules.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">
-                            No detection rules configured. Add at least one rule.
+                        <div className="text-center py-20 bg-muted/20 border-2 border-dashed rounded-[2rem] flex flex-col items-center">
+                            <Search className="h-12 w-12 text-muted-foreground/20 mb-4" />
+                            <p className="text-muted-foreground font-medium">No detection rules configured.</p>
+                            <p className="text-xs text-muted-foreground/60 mt-1">Add at least one rule to validate the installation.</p>
                         </div>
                     ) : (
                         currentConfig.detectionRules.map((rule, index) => (
                             <div
                                 key={index}
-                                className="p-4 border rounded-lg bg-muted/30 space-y-3"
+                                className="p-6 border-2 border-border/40 rounded-3xl bg-background/50 space-y-5 animate-in slide-in-from-top-4 duration-300 relative group overflow-hidden shadow-sm"
                             >
+                                <div className="absolute top-0 left-0 w-1.5 h-full bg-primary/20 group-hover:bg-primary transition-colors" />
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 font-medium">
                                         {getRuleIcon(rule.type)}
