@@ -18,7 +18,6 @@ import {
     Package,
     PlusCircle,
     Info,
-    ShieldCheck,
     FileText
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
