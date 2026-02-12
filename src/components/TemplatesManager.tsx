@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Copy, Trash2, FileCode } from 'lucide-react';
+import { Copy, Trash2, FileCode, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
     DialogHeader,
     DialogTitle,
@@ -30,6 +31,16 @@ export function TemplatesManager({ onSelect }: TemplatesManagerProps) {
                     Load a saved configuration template to start packaging.
                 </DialogDescription>
             </DialogHeader>
+
+            <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Search templates..."
+                    className="pl-8"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
+            </div>
 
             {templates.length === 0 ? (
                 <div className="text-center py-12 border rounded-lg bg-muted/20">
@@ -73,6 +84,12 @@ export function TemplatesManager({ onSelect }: TemplatesManagerProps) {
                             </div>
                         </div>
                     ))}
+
+                    {filteredTemplates.length === 0 && templates.length > 0 && (
+                        <div className="text-center py-8 text-muted-foreground">
+                            No templates found matching "{search}"
+                        </div>
+                    )}
                 </div>
             )}
         </div>
