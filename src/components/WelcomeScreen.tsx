@@ -4,6 +4,7 @@ import { usePackage } from '@/contexts/PackageContext';
 import { AppCatalog } from '@/components/AppCatalog';
 import { TemplatesManager } from '@/components/TemplatesManager';
 import type { CatalogApp } from '@/lib/app-catalog';
+import { createEmptyPackageConfig } from '@/lib/package-config';
 import {
     Dialog,
     DialogContent,
@@ -13,31 +14,57 @@ import { useState } from 'react';
 import type { PackageConfig } from '@/lib/package-config';
 
 export function WelcomeScreen() {
-    const { createNewConfig, setSelectedFile, setCurrentConfig } = usePackage();
+    const { createNewConfig, setSelectedFile, setCurrentConfig, addConfigs } = usePackage();
     const [catalogOpen, setCatalogOpen] = useState(false);
     const [templatesOpen, setTemplatesOpen] = useState(false);
 
-    const handleCatalogSelect = (app: CatalogApp, file: File) => {
-        const newConfig = createNewConfig();
+    const handleCatalogSelect = (apps: CatalogApp[], immediateDownload: boolean, file?: File) => {
+        if (immediateDownload && apps.length === 1 && file) {
+            const app = apps[0];
+            const newConfig = createNewConfig();
 
-        // Populate config from catalog app
-        const updatedConfig: PackageConfig = {
-            ...newConfig,
-            name: app.name,
-            displayName: app.name,
-            publisher: app.publisher,
-            description: app.description,
-            version: app.version,
-            setupFileName: app.filename,
-            installCommandLine: app.installCommand,
-            uninstallCommandLine: app.uninstallCommand,
-            detectionRules: app.detectionRules,
-            packageType: app.filename.toLowerCase().endsWith('.msi') ? 'MSI' : 'EXE',
-            updatedAt: new Date().toISOString(),
-        };
+            // Populate config from catalog app
+            const updatedConfig: PackageConfig = {
+                ...newConfig,
+                name: app.name,
+                displayName: app.name,
+                publisher: app.publisher,
+                description: app.description,
+                version: app.version,
+                setupFileName: app.filename,
+                installCommandLine: app.installCommand,
+                uninstallCommandLine: app.uninstallCommand,
+                detectionRules: app.detectionRules,
+                packageType: app.filename.toLowerCase().endsWith('.msi') ? 'MSI' : 'EXE',
+                updatedAt: new Date().toISOString(),
+            };
 
-        setCurrentConfig(updatedConfig);
-        setSelectedFile(file);
+            setCurrentConfig(updatedConfig);
+            setSelectedFile(file);
+        } else {
+            // Bulk add to library
+            const newConfigs = apps.map(app => {
+                const config = createEmptyPackageConfig();
+                return {
+                    ...config,
+                    name: app.name,
+                    displayName: app.name,
+                    publisher: app.publisher,
+                    description: app.description,
+                    version: app.version,
+                    setupFileName: app.filename,
+                    installCommandLine: app.installCommand,
+                    uninstallCommandLine: app.uninstallCommand,
+                    detectionRules: app.detectionRules,
+                    packageType: app.filename.toLowerCase().endsWith('.msi') ? 'MSI' : 'EXE',
+                    updatedAt: new Date().toISOString(),
+                    sourceType: 'url',
+                    sourceUrl: app.downloadUrl
+                } as PackageConfig;
+            });
+
+            addConfigs(newConfigs);
+        }
         setCatalogOpen(false);
     };
 
@@ -128,7 +155,7 @@ export function WelcomeScreen() {
                                 Browse Catalog
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-3xl">
+                        <DialogContent className="max-w-4xl max-h-[85vh]">
                            <AppCatalog onSelect={handleCatalogSelect} />
                         </DialogContent>
                     </Dialog>

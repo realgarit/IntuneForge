@@ -1,9 +1,16 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi, describe, it, expect } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { AppCatalog } from '../src/components/AppCatalog';
 import { APP_CATALOG } from '../src/lib/app-catalog';
 import { Dialog, DialogContent } from '../src/components/ui/dialog';
+
+// Mock ResizeObserver for ScrollArea/Dialog
+global.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+};
 
 describe('AppCatalog', () => {
     const renderInDialog = (ui: React.ReactNode) => {
@@ -16,11 +23,14 @@ describe('AppCatalog', () => {
         );
     };
 
+    beforeEach(() => {
+        global.fetch = vi.fn();
+    });
+
     it('renders the catalog apps', async () => {
         const onSelect = vi.fn();
         renderInDialog(<AppCatalog onSelect={onSelect} />);
 
-        // Wait for dialog content to be visible (it animates in)
         await waitFor(() => {
             expect(screen.getByText(APP_CATALOG[0].name)).toBeDefined();
         });
@@ -44,12 +54,12 @@ describe('AppCatalog', () => {
         });
     });
 
-    it('handles app selection and download', async () => {
+    it('handles single app selection and download', async () => {
         const onSelect = vi.fn();
 
         // Mock fetch
         const mockBlob = new Blob(['fake installer content'], { type: 'application/octet-stream' });
-        global.fetch = vi.fn().mockResolvedValue({
+        (global.fetch as any).mockResolvedValue({
             ok: true,
             blob: () => Promise.resolve(mockBlob),
         } as Response);
@@ -60,10 +70,9 @@ describe('AppCatalog', () => {
              expect(screen.getAllByRole('button').length).toBeGreaterThan(0);
         });
 
-        const buttons = screen.getAllByRole('button');
-        const selectButtons = buttons.filter(b => b.textContent?.includes('Select & Package'));
-
-        fireEvent.click(selectButtons[0]);
+        // Find "Package" buttons
+        const allPackageButtons = screen.getAllByRole('button', { name: /package/i });
+        fireEvent.click(allPackageButtons[0]);
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/proxy?url='));
@@ -71,16 +80,44 @@ describe('AppCatalog', () => {
         });
 
         // Verify the file argument
-        const file = onSelect.mock.calls[0][1];
-        expect(file).toBeInstanceOf(File);
-        expect(file.size).toBeGreaterThan(0);
+        const args = onSelect.mock.calls[0];
+        expect(args[0]).toHaveLength(1);
+        expect(args[1]).toBe(true);
+        expect(args[2]).toBeInstanceOf(File);
+    });
+
+    it('handles bulk selection', async () => {
+        const onSelect = vi.fn();
+        renderInDialog(<AppCatalog onSelect={onSelect} />);
+
+        await waitFor(() => {
+            expect(screen.getByText(APP_CATALOG[0].name)).toBeDefined();
+        });
+
+        // Find checkboxes. They are inputs with type checkbox.
+        // Note: My implementation uses <input type="checkbox" /> so getByRole('checkbox') should work
+        const checkboxes = screen.getAllByRole('checkbox');
+
+        // Click first two checkboxes
+        fireEvent.click(checkboxes[0]);
+        fireEvent.click(checkboxes[1]);
+
+        // Find "Add 2 to Library" button
+        const addButton = screen.getByRole('button', { name: /Add 2 to Library/i });
+        fireEvent.click(addButton);
+
+        expect(onSelect).toHaveBeenCalled();
+        const args = onSelect.mock.calls[0];
+        expect(args[0]).toHaveLength(2); // 2 apps
+        expect(args[1]).toBe(false); // immediateDownload = false
+        expect(args[2]).toBeUndefined(); // no file
     });
 
     it('handles download error', async () => {
         const onSelect = vi.fn();
 
         // Mock fetch error
-        global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+        (global.fetch as any).mockRejectedValue(new Error('Network error'));
 
         renderInDialog(<AppCatalog onSelect={onSelect} />);
 
@@ -88,9 +125,8 @@ describe('AppCatalog', () => {
              expect(screen.getAllByRole('button').length).toBeGreaterThan(0);
         });
 
-        const buttons = screen.getAllByRole('button');
-        const selectButtons = buttons.filter(b => b.textContent?.includes('Select & Package'));
-        fireEvent.click(selectButtons[0]);
+        const allPackageButtons = screen.getAllByRole('button', { name: /package/i });
+        fireEvent.click(allPackageButtons[0]);
 
         await waitFor(() => {
             expect(screen.getByText('Network error')).toBeDefined();
