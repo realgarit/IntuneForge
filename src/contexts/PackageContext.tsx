@@ -20,6 +20,7 @@ interface PackageContextType {
     createNewConfig: () => PackageConfig;
     saveCurrentConfig: () => void;
     deleteConfig: (id: string) => void;
+    deleteConfigs: (ids: string[]) => void;
     setSelectedFile: (file: File | null) => void;
     setAdditionalFiles: (files: File[]) => void;
     saveAsTemplate: (config: PackageConfig) => void;
@@ -29,17 +30,11 @@ interface PackageContextType {
 const PackageContext = createContext<PackageContextType | undefined>(undefined);
 
 export function PackageProvider({ children }: { children: React.ReactNode }) {
-    const [configs, setConfigs] = useState<PackageConfig[]>([]);
-    const [templates, setTemplates] = useState<PackageConfig[]>([]);
+    const [configs, setConfigs] = useState<PackageConfig[]>(() => loadConfigs());
+    const [templates, setTemplates] = useState<PackageConfig[]>(() => loadTemplates());
     const [currentConfig, setCurrentConfig] = useState<PackageConfig | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
-
-    // Load saved configs on mount
-    useEffect(() => {
-        setConfigs(loadConfigs());
-        setTemplates(loadTemplates());
-    }, []);
 
     // Save configs whenever they change
     useEffect(() => {
@@ -108,6 +103,16 @@ export function PackageProvider({ children }: { children: React.ReactNode }) {
         }
     }, [currentConfig]);
 
+    const deleteConfigs = useCallback((ids: string[]) => {
+        const idSet = new Set(ids);
+        setConfigs(prev => prev.filter(c => !idSet.has(c.id)));
+        if (currentConfig && idSet.has(currentConfig.id)) {
+            setCurrentConfig(null);
+            setSelectedFile(null);
+            setAdditionalFiles([]);
+        }
+    }, [currentConfig]);
+
     const saveAsTemplate = useCallback((config: PackageConfig) => {
         const template = {
             ...config,
@@ -136,6 +141,7 @@ export function PackageProvider({ children }: { children: React.ReactNode }) {
                 createNewConfig,
                 saveCurrentConfig,
                 deleteConfig,
+                deleteConfigs,
                 setSelectedFile,
                 setAdditionalFiles,
                 saveAsTemplate,
