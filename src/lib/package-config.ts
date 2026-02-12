@@ -121,6 +121,7 @@ export function createEmptyPackageConfig(): PackageConfig {
  */
 const STORAGE_KEY = 'intuneforge-configs';
 const AUTH_STORAGE_KEY = 'intuneforge-auth';
+const TEMPLATE_STORAGE_KEY = 'intuneforge-templates';
 
 /**
  * Saves package configurations to localStorage
@@ -134,6 +135,27 @@ export function saveConfigs(configs: PackageConfig[]): void {
  */
 export function loadConfigs(): PackageConfig[] {
     const data = localStorage.getItem(STORAGE_KEY);
+    if (!data) return [];
+
+    try {
+        return JSON.parse(data);
+    } catch {
+        return [];
+    }
+}
+
+/**
+ * Saves templates to localStorage
+ */
+export function saveTemplates(templates: PackageConfig[]): void {
+    localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(templates));
+}
+
+/**
+ * Loads templates from localStorage
+ */
+export function loadTemplates(): PackageConfig[] {
+    const data = localStorage.getItem(TEMPLATE_STORAGE_KEY);
     if (!data) return [];
 
     try {
