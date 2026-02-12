@@ -132,7 +132,7 @@ export function WelcomeScreen() {
                                 Browse Catalog
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-3xl">
+                        <DialogContent className="max-w-6xl p-0 overflow-hidden border-none shadow-2xl">
                            <AppCatalog
                                 onSelect={handleCatalogSelect}
                                 onBulkSelect={handleBulkCatalogSelect}

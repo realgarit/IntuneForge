@@ -37,7 +37,7 @@ describe('AppCatalog', () => {
              expect(screen.getByText(APP_CATALOG[0].name)).toBeDefined();
         });
 
-        const input = screen.getByPlaceholderText('Search apps...');
+        const input = screen.getByPlaceholderText('Search apps, vendors, categories...');
         fireEvent.change(input, { target: { value: 'Firefox' } });
 
         await waitFor(() => {
@@ -64,9 +64,14 @@ describe('AppCatalog', () => {
         });
 
         const buttons = screen.getAllByRole('button');
-        const selectButtons = buttons.filter(b => b.textContent?.includes('Select & Package'));
+        const configureButton = buttons.find(b => b.textContent?.includes('Configure'));
 
-        fireEvent.click(selectButtons[0]);
+        if (!configureButton) throw new Error('Configure button not found');
+        fireEvent.click(configureButton);
+
+        // Should now be in customization view
+        const startButton = await screen.findByText('Start Packaging');
+        fireEvent.click(startButton);
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/proxy?url='));
@@ -92,8 +97,14 @@ describe('AppCatalog', () => {
         });
 
         const buttons = screen.getAllByRole('button');
-        const selectButtons = buttons.filter(b => b.textContent?.includes('Select & Package'));
-        fireEvent.click(selectButtons[0]);
+        const configureButton = buttons.find(b => b.textContent?.includes('Configure'));
+
+        if (!configureButton) throw new Error('Configure button not found');
+        fireEvent.click(configureButton);
+
+        // Should now be in customization view
+        const startButton = await screen.findByText('Start Packaging');
+        fireEvent.click(startButton);
 
         await waitFor(() => {
             expect(screen.getByText('Network error')).toBeDefined();
