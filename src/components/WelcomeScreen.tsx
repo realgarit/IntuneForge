@@ -41,6 +41,10 @@ export function WelcomeScreen() {
         setCatalogOpen(false);
     };
 
+    const handleBulkCatalogSelect = () => {
+        setCatalogOpen(false);
+    };
+
     const handleTemplateSelect = (template: PackageConfig) => {
         const newConfig = {
             ...template,
@@ -129,7 +133,10 @@ export function WelcomeScreen() {
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-3xl">
-                           <AppCatalog onSelect={handleCatalogSelect} />
+                           <AppCatalog
+                                onSelect={handleCatalogSelect}
+                                onBulkSelect={handleBulkCatalogSelect}
+                            />
                         </DialogContent>
                     </Dialog>
 

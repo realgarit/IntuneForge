@@ -4,15 +4,18 @@ import { vi, describe, it, expect } from 'vitest';
 import { AppCatalog } from '../src/components/AppCatalog';
 import { APP_CATALOG } from '../src/lib/app-catalog';
 import { Dialog, DialogContent } from '../src/components/ui/dialog';
+import { PackageProvider } from '../src/contexts/PackageContext';
 
 describe('AppCatalog', () => {
     const renderInDialog = (ui: React.ReactNode) => {
         return render(
-            <Dialog open={true}>
-                <DialogContent>
-                    {ui}
-                </DialogContent>
-            </Dialog>
+            <PackageProvider>
+                <Dialog open={true}>
+                    <DialogContent>
+                        {ui}
+                    </DialogContent>
+                </Dialog>
+            </PackageProvider>
         );
     };
 
