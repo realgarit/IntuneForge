@@ -1,68 +1,71 @@
+import { useState } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { PackageProvider } from '@/contexts/PackageContext';
-import { usePackage } from '@/contexts/PackageContext';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
-import { WelcomeScreen } from '@/components/WelcomeScreen';
-import { FileUploader } from '@/components/FileUploader';
-import { PackageDetails } from '@/components/PackageDetails';
-import { InstallCommands } from '@/components/InstallCommands';
-import { DetectionRules } from '@/components/DetectionRules';
-import { Assignments } from '@/components/Assignments';
-import { BuildSection } from '@/components/BuildSection';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dashboard } from '@/components/Dashboard';
+import { AppCatalog } from '@/components/AppCatalog';
+import { MyPackages } from '@/components/MyPackages';
+import { PackageEditor } from '@/components/PackageEditor';
+import { LogViewer } from '@/components/LogViewer';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { Package, Users } from 'lucide-react';
 
-function PackageEditor() {
-  const { currentConfig } = usePackage();
-
-  if (!currentConfig) {
-    return <WelcomeScreen />;
-  }
-
-  return (
-    <div className="flex-1 space-y-8 overflow-y-auto scrollbar-thin pr-2">
-      <Tabs defaultValue="package" className="w-full">
-        <TabsList className="w-full justify-start bg-muted/40 p-1 rounded-xl border border-border/40 mb-2">
-          <TabsTrigger value="package" className="gap-2">
-            <Package className="h-4 w-4" />
-            Package
-          </TabsTrigger>
-          <TabsTrigger value="assignments" className="gap-2">
-            <Users className="h-4 w-4" />
-            Assignments
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="package" className="mt-6 space-y-6">
-          <FileUploader />
-          <PackageDetails />
-          <InstallCommands />
-          <DetectionRules />
-          <BuildSection />
-        </TabsContent>
-
-        <TabsContent value="assignments" className="mt-6 space-y-6">
-          <Assignments />
-          <BuildSection />
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-}
+export type View = 'dashboard' | 'catalog' | 'packages' | 'editor' | 'settings';
 
 function AppContent() {
+  const [currentView, setCurrentView] = useState<View>('dashboard');
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // If a config is selected and we are in dashboard, we might want to stay there or switch to editor.
+  // For now, let's just let the user navigate.
+
+  const handleCatalogSelect = () => {
+    setCurrentView('editor');
+  };
+
+  const renderView = () => {
+    switch (currentView) {
+      case 'dashboard':
+        return <Dashboard onNavigate={setCurrentView} />;
+      case 'catalog':
+        return <AppCatalog onSelect={handleCatalogSelect} />;
+      case 'packages':
+        return <MyPackages onEdit={() => setCurrentView('editor')} />;
+      case 'editor':
+        return <PackageEditor />;
+      case 'settings':
+        return <Dashboard onNavigate={setCurrentView} />; // Fallback or dedicated view
+      default:
+        return <Dashboard onNavigate={setCurrentView} />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Header />
+      <Header
+        settingsOpen={settingsOpen}
+        onSettingsOpenChange={setSettingsOpen}
+      />
 
-      <main className="flex-1 container mx-auto px-6 py-8">
+      <main className="flex-1 container mx-auto px-6 py-8 mb-10">
         <div className="flex flex-col lg:flex-row gap-8 min-h-[calc(100vh-10rem)]">
-          <Sidebar />
-          <PackageEditor />
+          <Sidebar
+            currentView={currentView}
+            onNavigate={(view) => {
+              if (view === 'settings') {
+                setSettingsOpen(true);
+              } else {
+                setCurrentView(view);
+              }
+            }}
+          />
+          <div className="flex-1 flex flex-col">
+            {renderView()}
+          </div>
         </div>
       </main>
+
+      <LogViewer />
 
       <footer className="border-t py-4 text-center text-sm text-muted-foreground">
         <p>

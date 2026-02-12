@@ -23,11 +23,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from "@/components/ui/label";
-import {
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-} from '@/components/ui/dialog';
 import { APP_CATALOG } from '@/lib/app-catalog';
 import type { CatalogApp } from '@/lib/app-catalog';
 import { cn } from '@/lib/utils';
@@ -223,8 +218,8 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
 
     if (view === 'customize' && selectedApp) {
         return (
-            <div className="flex flex-col h-[75vh] p-8 overflow-hidden">
-                <DialogHeader className="mb-8">
+            <div className="flex flex-col h-full overflow-hidden animate-in fade-in duration-300">
+                <div className="mb-8">
                     <div className="flex items-center gap-6">
                         <Button variant="outline" size="icon" className="h-12 w-12 rounded-2xl shadow-sm" onClick={() => setView('list')}>
                             <ArrowLeft className="h-6 w-6" />
@@ -245,15 +240,15 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                 </div>
                             )}
                             <div>
-                                <DialogTitle className="text-3xl font-bold tracking-tight">{selectedApp.name}</DialogTitle>
-                                <DialogDescription className="text-lg mt-1 flex items-center gap-2">
+                                <h2 className="text-3xl font-bold tracking-tight">{selectedApp.name}</h2>
+                                <p className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
                                     <Wrench className="h-4 w-4 text-primary" />
                                     Configure installation options
-                                </DialogDescription>
+                                </p>
                             </div>
                         </div>
                     </div>
-                </DialogHeader>
+                </div>
 
                 <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -397,17 +392,17 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
     }
 
     return (
-        <div className="flex flex-col h-[85vh] p-8 overflow-hidden bg-background">
-            <DialogHeader className="mb-8">
+        <div className="flex flex-col h-full overflow-hidden animate-in fade-in duration-300">
+            <div className="mb-8">
                 <div className="flex items-center justify-between">
                     <div>
-                        <DialogTitle className="text-4xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-transparent flex items-center gap-3">
+                        <h2 className="text-4xl font-black tracking-tight flex items-center gap-3">
                              <Package className="h-10 w-10 text-primary" />
                              App Catalog
-                        </DialogTitle>
-                        <DialogDescription className="text-lg mt-2 font-medium text-muted-foreground/80">
+                        </h2>
+                        <p className="text-muted-foreground mt-2 font-medium">
                             Deploy tested and verified application packages in seconds.
-                        </DialogDescription>
+                        </p>
                     </div>
                     <div className="hidden lg:flex flex-col items-end gap-1">
                         <div className="flex items-center gap-2 px-4 py-1.5 bg-primary/5 rounded-full border border-primary/10 shadow-sm ring-1 ring-primary/5">
@@ -417,7 +412,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                         <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mr-2">Updated Daily</p>
                     </div>
                 </div>
-            </DialogHeader>
+            </div>
 
             <div className="flex gap-8 flex-1 overflow-hidden">
                 {/* Sidebar */}
@@ -620,10 +615,10 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                                 }}
                                                 disabled={!!downloading}
                                                 className={cn(
-                                                    "gap-2.5 rounded-2xl font-black text-xs h-11 px-6 transition-all duration-300 active:scale-95 shadow-lg",
+                                                "gap-2.5 rounded-xl font-bold text-xs h-10 px-6 transition-all duration-300 active:scale-95 shadow-md border",
                                                     app.customizations?.length
-                                                        ? "bg-secondary hover:bg-secondary/80 text-secondary-foreground hover:shadow-secondary/20"
-                                                        : "bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20"
+                                                    ? "bg-secondary hover:bg-muted border-border text-secondary-foreground"
+                                                    : "bg-primary hover:bg-primary/90 border-primary text-primary-foreground shadow-primary/10"
                                                 )}
                                             >
                                                 {downloading === app.id ? (
