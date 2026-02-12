@@ -1,6 +1,8 @@
-import { Package, ArrowRight, Settings2, CloudUpload, Library, FileCode, CheckCircle2, Clock, ShieldCheck, AlertTriangle, TrendingUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Package, ArrowRight, Settings2, CloudUpload, Library, FileCode, CheckCircle2, Clock, ShieldCheck, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePackage } from '@/contexts/PackageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import type { View } from '@/App';
 
@@ -10,6 +12,36 @@ interface DashboardProps {
 
 export function Dashboard({ onNavigate }: DashboardProps) {
     const { createNewConfig, configs } = usePackage();
+    const { isAuthenticated, clientId } = useAuth();
+
+    const lastConfig = [...configs].sort((a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    )[0];
+
+    const getTimeAgo = (dateString: string) => {
+        const now = new Date();
+        const past = new Date(dateString);
+        const diffInMs = now.getTime() - past.getTime();
+        const diffInMins = Math.floor(diffInMs / (1000 * 60));
+        const diffInHours = Math.floor(diffInMins / 60);
+        const diffInDays = Math.floor(diffInHours / 24);
+
+        if (diffInDays > 0) return `${diffInDays}d ago`;
+        if (diffInHours > 0) return `${diffInHours}h ago`;
+        if (diffInMins > 0) return `${diffInMins}m ago`;
+        return 'Just now';
+    };
+
+    const readinessStats = configs.length > 0 ? {
+        complete: configs.filter(c => c.detectionRules.length > 0 && c.assignments.length > 0).length,
+        partial: configs.filter(c => (c.detectionRules.length > 0) || (c.assignments.length > 0)).length - configs.filter(c => c.detectionRules.length > 0 && c.assignments.length > 0).length,
+        draft: configs.filter(c => c.detectionRules.length === 0 && c.assignments.length === 0).length,
+    } : { complete: 0, partial: 0, draft: 0 };
+
+    const totalConfigs = configs.length || 1;
+    const completePercent = configs.length > 0 ? Math.round((readinessStats.complete / totalConfigs) * 100) : 0;
+    const partialPercent = configs.length > 0 ? Math.round((readinessStats.partial / totalConfigs) * 100) : 0;
+    const draftPercent = configs.length > 0 ? Math.max(0, 100 - completePercent - partialPercent) : 0;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -68,9 +100,9 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-black">2h ago</div>
-                        <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-tighter">
-                            PowerToys_v0.75.1.intunewin
+                        <div className="text-3xl font-black">{lastConfig ? getTimeAgo(lastConfig.updatedAt) : 'N/A'}</div>
+                        <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-tighter truncate">
+                            {lastConfig ? lastConfig.displayName || lastConfig.name : 'No recent builds'}
                         </p>
                     </CardContent>
                 </Card>
@@ -78,14 +110,22 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 <Card className="border-border/40 bg-muted/20 hover:bg-muted/30 transition-colors cursor-default group">
                     <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                         <CardTitle className="text-xs font-black uppercase tracking-widest text-muted-foreground">API Health</CardTitle>
-                        <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 group-hover:bg-amber-500/20 transition-colors">
-                            <CloudUpload className="h-4 w-4 text-amber-500" />
+                        <div className={cn(
+                            "p-2 rounded-lg border transition-colors",
+                            isAuthenticated
+                                ? "bg-green-500/10 border-green-500/20 group-hover:bg-green-500/20"
+                                : "bg-amber-500/10 border-amber-500/20 group-hover:bg-amber-500/20"
+                        )}>
+                            <CloudUpload className={cn(
+                                "h-4 w-4",
+                                isAuthenticated ? "text-green-500" : "text-amber-500"
+                            )} />
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-black">99.9%</div>
+                        <div className="text-3xl font-black">{isAuthenticated ? '100%' : '0%'}</div>
                         <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-tighter">
-                            Graph API connected
+                            {isAuthenticated ? 'Graph API connected' : clientId ? 'Awaiting Login' : 'Not Configured'}
                         </p>
                     </CardContent>
                 </Card>
@@ -93,16 +133,18 @@ export function Dashboard({ onNavigate }: DashboardProps) {
 
             <div className="grid gap-8 lg:grid-cols-3">
                 <div className="lg:col-span-2 space-y-8">
-                {/* Patching Health */}
+                {/* Configuration Readiness */}
                 <Card className="border-border/40 bg-card/50 overflow-hidden">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div>
-                            <CardTitle className="text-xl font-black">Patching Health</CardTitle>
-                            <CardDescription className="font-medium">Current status of managed applications across the environment.</CardDescription>
+                            <CardTitle className="text-xl font-black">Configuration Readiness</CardTitle>
+                            <CardDescription className="font-medium">Completion status of your Win32 application packages.</CardDescription>
                         </div>
                         <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/20">
                             <TrendingUp className="h-4 w-4 text-primary" />
-                            <span className="text-[10px] font-black text-primary uppercase tracking-widest">+12% this month</span>
+                            <span className="text-[10px] font-black text-primary uppercase tracking-widest">
+                                {configs.length} Total Apps
+                            </span>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -111,22 +153,22 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                                 <div className="h-12 w-12 rounded-2xl bg-green-500/10 flex items-center justify-center mb-4">
                                     <ShieldCheck className="h-6 w-6 text-green-500" />
                                 </div>
-                                <div className="text-4xl font-black text-green-500">84%</div>
-                                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-2">Compliant</div>
+                                <div className="text-4xl font-black text-green-500">{completePercent}%</div>
+                                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-2">Ready</div>
                             </div>
                             <div className="flex flex-col items-center justify-center p-6 bg-amber-500/5 rounded-[2rem] border border-amber-500/10">
                                 <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-4">
                                     <Clock className="h-6 w-6 text-amber-500" />
                                 </div>
-                                <div className="text-4xl font-black text-amber-500">12%</div>
-                                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-2">Pending</div>
+                                <div className="text-4xl font-black text-amber-500">{partialPercent}%</div>
+                                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-2">Incomplete</div>
                             </div>
-                            <div className="flex flex-col items-center justify-center p-6 bg-destructive/5 rounded-[2rem] border border-destructive/10">
-                                <div className="h-12 w-12 rounded-2xl bg-destructive/10 flex items-center justify-center mb-4">
-                                    <AlertTriangle className="h-6 w-6 text-destructive" />
+                            <div className="flex flex-col items-center justify-center p-6 bg-blue-500/5 rounded-[2rem] border border-blue-500/10">
+                                <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-4">
+                                    <FileCode className="h-6 w-6 text-blue-500" />
                                 </div>
-                                <div className="text-4xl font-black text-destructive">4%</div>
-                                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-2">Failed</div>
+                                <div className="text-4xl font-black text-blue-500">{draftPercent}%</div>
+                                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-2">Draft</div>
                             </div>
                         </div>
                     </CardContent>
@@ -193,44 +235,39 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                         </CardHeader>
                         <CardContent className="p-0">
                             <div className="divide-y divide-border/40">
-                                <div className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors group">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-10 w-10 rounded-xl bg-green-500/10 flex items-center justify-center border border-green-500/20 group-hover:scale-110 transition-transform">
-                                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                                {configs.slice(0, 3).map((config) => (
+                                    <div key={config.id} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors group">
+                                        <div className="flex items-center gap-4">
+                                            <div className={cn(
+                                                "h-10 w-10 rounded-xl flex items-center justify-center border transition-transform group-hover:scale-110",
+                                                config.detectionRules.length > 0 && config.assignments.length > 0
+                                                    ? "bg-green-500/10 border-green-500/20 text-green-500"
+                                                    : config.detectionRules.length > 0 || config.assignments.length > 0
+                                                    ? "bg-amber-500/10 border-amber-500/20 text-amber-500"
+                                                    : "bg-blue-500/10 border-blue-500/20 text-blue-500"
+                                            )}>
+                                                {config.detectionRules.length > 0 && config.assignments.length > 0
+                                                    ? <CheckCircle2 className="h-5 w-5" />
+                                                    : config.detectionRules.length > 0 || config.assignments.length > 0
+                                                    ? <Settings2 className="h-5 w-5" />
+                                                    : <FileCode className="h-5 w-5" />
+                                                }
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold">{config.displayName || config.name} {config.version}</p>
+                                                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">
+                                                    {config.detectionRules.length > 0 && config.assignments.length > 0 ? 'Ready' : 'In Progress'} • {getTimeAgo(config.updatedAt)}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-bold">VS Code v1.84.2 Deployed</p>
-                                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Success • 12m ago</p>
-                                        </div>
+                                        <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
                                     </div>
-                                    <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
-                                </div>
-
-                                <div className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors group">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:scale-110 transition-transform">
-                                            <Package className="h-5 w-5 text-primary" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold">Google Chrome v119.0 Built</p>
-                                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Packaged • 45m ago</p>
-                                        </div>
+                                ))}
+                                {configs.length === 0 && (
+                                    <div className="p-8 text-center text-muted-foreground">
+                                        <p className="text-sm font-medium italic">No recent activity found. Start by creating a new package!</p>
                                     </div>
-                                    <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
-                                </div>
-
-                                <div className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors group">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 group-hover:scale-110 transition-transform">
-                                            <Settings2 className="h-5 w-5 text-blue-500" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold">Firefox v119.0 Configured</p>
-                                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Drafted • 2h ago</p>
-                                        </div>
-                                    </div>
-                                    <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
-                                </div>
+                                )}
                             </div>
                             <div className="p-4 bg-muted/10 flex justify-center border-t border-border/40">
                                 <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase tracking-widest hover:text-primary" onClick={() => onNavigate('packages')}>
