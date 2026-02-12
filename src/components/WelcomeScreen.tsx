@@ -11,9 +11,10 @@ import {
 } from '@/components/ui/dialog';
 import { useState } from 'react';
 import type { PackageConfig } from '@/lib/package-config';
+import { createEmptyPackageConfig } from '@/lib/package-config';
 
 export function WelcomeScreen() {
-    const { createNewConfig, setSelectedFile, setCurrentConfig } = usePackage();
+    const { createNewConfig, setSelectedFile, setCurrentConfig, addConfigs } = usePackage();
     const [catalogOpen, setCatalogOpen] = useState(false);
     const [templatesOpen, setTemplatesOpen] = useState(false);
 
@@ -51,6 +52,28 @@ export function WelcomeScreen() {
         setCurrentConfig(newConfig);
         setSelectedFile(null);
         setTemplatesOpen(false);
+    };
+
+    const handleBulkSelect = (apps: CatalogApp[]) => {
+        const newConfigs: PackageConfig[] = apps.map(app => ({
+            ...createEmptyPackageConfig(),
+            name: app.name,
+            displayName: app.name,
+            publisher: app.publisher,
+            description: app.description,
+            version: app.version,
+            setupFileName: app.filename,
+            installCommandLine: app.installCommand,
+            uninstallCommandLine: app.uninstallCommand,
+            detectionRules: app.detectionRules,
+            packageType: app.filename.toLowerCase().endsWith('.msi') ? 'MSI' : 'EXE',
+            sourceType: 'url',
+            sourceUrl: app.downloadUrl,
+            updatedAt: new Date().toISOString(),
+        }));
+
+        addConfigs(newConfigs);
+        setCatalogOpen(false);
     };
 
     return (
@@ -128,8 +151,8 @@ export function WelcomeScreen() {
                                 Browse Catalog
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-3xl">
-                           <AppCatalog onSelect={handleCatalogSelect} />
+                        <DialogContent className="max-w-4xl max-h-[90vh]">
+                           <AppCatalog onSelect={handleCatalogSelect} onBulkSelect={handleBulkSelect} />
                         </DialogContent>
                     </Dialog>
 

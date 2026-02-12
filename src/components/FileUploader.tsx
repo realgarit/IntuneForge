@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Upload, FileArchive, Link2, AlertCircle, Plus, Trash2 } from 'lucide-react';
+import { Upload, FileArchive, Link2, AlertCircle, Plus, Trash2, Download, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +19,7 @@ export function FileUploader() {
     } = usePackage();
     const [isDragging, setIsDragging] = useState(false);
     const [urlError, setUrlError] = useState<string | null>(null);
+    const [isDownloading, setIsDownloading] = useState(false);
 
     const handleFileSelect = useCallback((file: File) => {
         const validExtensions = ['.exe', '.msi', '.msix', '.msixbundle'];
@@ -92,6 +93,34 @@ export function FileUploader() {
         }
     };
 
+    const handleDownload = async () => {
+        if (!currentConfig?.sourceUrl) return;
+
+        setIsDownloading(true);
+        setUrlError(null);
+
+        try {
+            const proxyUrl = `/api/proxy?url=${encodeURIComponent(currentConfig.sourceUrl)}`;
+            const response = await fetch(proxyUrl);
+
+            if (!response.ok) {
+                throw new Error(`Download failed: ${response.statusText}`);
+            }
+
+            const blob = await response.blob();
+            // Use setupFileName if available, otherwise try to extract from URL or fallback
+            const fileName = currentConfig.setupFileName || 'installer.exe';
+            const file = new File([blob], fileName, { type: blob.type });
+
+            handleFileSelect(file);
+        } catch (err) {
+            console.error(err);
+            setUrlError(err instanceof Error ? err.message : 'Download failed');
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     const handleAdditionalFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (files && files.length > 0) {
@@ -107,6 +136,9 @@ export function FileUploader() {
         setAdditionalFiles(newFiles);
     };
 
+    // Determine default tab based on config
+    const defaultTab = currentConfig?.sourceType === 'url' ? 'url' : 'upload';
+
     return (
         <div className="space-y-4">
             <Card>
@@ -120,15 +152,15 @@ export function FileUploader() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Tabs defaultValue="upload" className="w-full">
+                    <Tabs defaultValue={defaultTab} className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="upload">
+                            <TabsTrigger value="upload" onClick={() => updateCurrentConfig({ sourceType: 'local' })}>
                                 <Upload className="h-4 w-4 mr-2" />
                                 Local File
                             </TabsTrigger>
-                            <TabsTrigger value="url" disabled>
+                            <TabsTrigger value="url" onClick={() => updateCurrentConfig({ sourceType: 'url' })}>
                                 <Link2 className="h-4 w-4 mr-2" />
-                                URL (Coming Soon)
+                                URL
                             </TabsTrigger>
                         </TabsList>
 
@@ -196,13 +228,33 @@ export function FileUploader() {
                         <TabsContent value="url" className="mt-4 space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="download-url">Download URL</Label>
-                                <Input
-                                    id="download-url"
-                                    type="url"
-                                    placeholder="https://example.com/installer.exe"
-                                    value={currentConfig?.sourceUrl || ''}
-                                    onChange={(e) => handleUrlChange(e.target.value)}
-                                />
+                                <div className="flex gap-2">
+                                    <Input
+                                        id="download-url"
+                                        type="url"
+                                        placeholder="https://example.com/installer.exe"
+                                        value={currentConfig?.sourceUrl || ''}
+                                        onChange={(e) => handleUrlChange(e.target.value)}
+                                        className="flex-1"
+                                    />
+                                    <Button
+                                        onClick={handleDownload}
+                                        disabled={isDownloading || !currentConfig?.sourceUrl}
+                                        className="min-w-[140px]"
+                                    >
+                                        {isDownloading ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                Downloading...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Download className="h-4 w-4 mr-2" />
+                                                Download
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
                                 {urlError && (
                                     <p className="text-sm text-destructive flex items-center gap-1">
                                         <AlertCircle className="h-3 w-3" />
@@ -210,11 +262,23 @@ export function FileUploader() {
                                     </p>
                                 )}
                             </div>
-                            <div className="p-3 rounded-lg bg-muted/50 text-sm text-muted-foreground">
-                                <AlertCircle className="h-4 w-4 inline mr-2" />
-                                Note: Due to browser security restrictions, downloading from URLs is not supported in the web version.
-                                Please download the file first, then upload it locally.
-                            </div>
+
+                            {selectedFile ? (
+                                <div className="p-4 rounded-lg border bg-background flex items-center gap-3">
+                                    <div className="p-2 rounded bg-primary/10">
+                                        <FileArchive className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-sm truncate">Ready: {selectedFile.name}</p>
+                                        <p className="text-xs text-muted-foreground">{formatFileSize(selectedFile.size)}</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="p-3 rounded-lg bg-muted/50 text-sm text-muted-foreground">
+                                    <AlertCircle className="h-4 w-4 inline mr-2" />
+                                    Enter a direct download URL. We'll fetch it using our proxy to bypass CORS restrictions.
+                                </div>
+                            )}
                         </TabsContent>
                     </Tabs>
                 </CardContent>
