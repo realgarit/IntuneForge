@@ -12,8 +12,6 @@ interface SidebarProps {
 export function Sidebar({ currentView, onNavigate }: SidebarProps) {
     const {
         createNewConfig,
-        setCurrentConfig,
-        setSelectedFile
     } = usePackage();
 
     const navItems = [

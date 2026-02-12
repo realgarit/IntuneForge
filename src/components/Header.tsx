@@ -5,12 +5,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { SettingsDialog } from '@/components/SettingsDialog';
 
 interface HeaderProps {
-    onOpenSettings?: () => void;
     settingsOpen?: boolean;
     onSettingsOpenChange?: (open: boolean) => void;
 }
 
-export function Header({ onOpenSettings, settingsOpen: propsSettingsOpen, onSettingsOpenChange }: HeaderProps) {
+export function Header({ settingsOpen: propsSettingsOpen, onSettingsOpenChange }: HeaderProps) {
     const { isAuthenticated, account, logout, clientId, tenantId } = useAuth();
     const [internalSettingsOpen, setInternalSettingsOpen] = useState(false);
     const [showSetupCue, setShowSetupCue] = useState(false);

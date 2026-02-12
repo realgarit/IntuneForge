@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Terminal, ChevronUp, ChevronDown, X, Trash2, Info, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
+import { Terminal, ChevronUp, ChevronDown, Trash2, Info, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -17,16 +17,6 @@ export function LogViewer() {
         { id: '2', timestamp: new Date().toLocaleTimeString(), message: 'Application catalog loaded successfully.', type: 'success' },
         { id: '3', timestamp: new Date().toLocaleTimeString(), message: 'Environment configuration validated.', type: 'info' },
     ]);
-
-    const addLog = (message: string, type: LogEntry['type'] = 'info') => {
-        const newLog: LogEntry = {
-            id: crypto.randomUUID(),
-            timestamp: new Date().toLocaleTimeString(),
-            message,
-            type
-        };
-        setLogs(prev => [newLog, ...prev]);
-    };
 
     const clearLogs = () => {
         setLogs([]);

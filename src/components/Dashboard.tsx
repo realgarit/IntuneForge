@@ -1,4 +1,4 @@
-import { Hammer, Package, ArrowRight, Settings2, CloudUpload, Library, FileCode, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { Package, ArrowRight, Settings2, CloudUpload, Library, FileCode, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePackage } from '@/contexts/PackageContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9,7 +9,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ onNavigate }: DashboardProps) {
-    const { createNewConfig, configs, setCurrentConfig, setSelectedFile } = usePackage();
+    const { createNewConfig, configs } = usePackage();
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">

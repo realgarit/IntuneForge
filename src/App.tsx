@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { PackageProvider } from '@/contexts/PackageContext';
-import { usePackage } from '@/contexts/PackageContext';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { Dashboard } from '@/components/Dashboard';
@@ -16,7 +15,6 @@ export type View = 'dashboard' | 'catalog' | 'packages' | 'editor' | 'settings';
 function AppContent() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { currentConfig } = usePackage();
 
   // If a config is selected and we are in dashboard, we might want to stay there or switch to editor.
   // For now, let's just let the user navigate.
