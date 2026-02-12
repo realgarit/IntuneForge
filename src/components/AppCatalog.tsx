@@ -8,7 +8,6 @@ import {
     ArrowLeft,
     Check,
     Hammer,
-    Monitor,
     Globe,
     Code,
     MessageSquare,
@@ -16,8 +15,7 @@ import {
     Wrench,
     Briefcase,
     Package,
-    PlusCircle,
-    Info
+    PlusCircle
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
