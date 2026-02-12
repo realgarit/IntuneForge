@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { createIntuneWinPackage, downloadIntuneWin, type IntuneWinMetadata } from '@/lib/intunewin';
 import { deployToIntune } from '@/lib/deploy';
 import type { Win32AppDeploymentStage } from '@/lib/graph-api';
+import { formatFileSize } from '@/lib/utils';
 
 type BuildStage = 'idle' | 'packaging' | 'uploading' | 'complete' | 'error' | Win32AppDeploymentStage;
 
@@ -17,7 +18,7 @@ interface BuildProgress {
 }
 
 export function BuildSection() {
-    const { currentConfig, selectedFile, saveCurrentConfig } = usePackage();
+    const { currentConfig, selectedFile, saveCurrentConfig, additionalFiles } = usePackage();
     const { isAuthenticated, getAccessToken } = useAuth();
     const [buildProgress, setBuildProgress] = useState<BuildProgress>({
         stage: 'idle',
@@ -83,6 +84,7 @@ export function BuildSection() {
                     publisher: currentConfig.publisher,
                     setupFile: selectedFile.name,
                     file: selectedFile,
+                    additionalFiles: additionalFiles,
                 },
                 (stage, progress) => {
                     setBuildProgress({
@@ -278,7 +280,7 @@ export function BuildSection() {
                 {/* File size info */}
                 {intunewinBlob && (
                     <p className="text-xs text-muted-foreground">
-                        Package size: {(intunewinBlob.size / (1024 * 1024)).toFixed(2)} MB
+                        Package size: {formatFileSize(intunewinBlob.size)}
                     </p>
                 )}
             </CardContent>
