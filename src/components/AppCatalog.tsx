@@ -4,6 +4,7 @@ import {
     Loader2,
     Download,
     LayoutGrid,
+    List,
     ListFilter,
     ArrowLeft,
     Check,
@@ -15,7 +16,9 @@ import {
     Wrench,
     Briefcase,
     Package,
-    PlusCircle
+    PlusCircle,
+    Info,
+    FileText
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -58,9 +61,14 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
     const [bulkDownloading, setBulkDownloading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [iconErrors, setIconErrors] = useState<Set<string>>(new Set());
+    const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
     // Multi-select state
     const [selectedAppIds, setSelectedAppIds] = useState<Set<string>>(new Set());
+
+    // Global Options
+    const [killProcesses, setKillProcesses] = useState<boolean>(true);
+    const [skipIfRunning, setSkipIfRunning] = useState<boolean>(false);
 
     // Auto-assignment state
     const [autoAssign, setAutoAssign] = useState<boolean>(false);
@@ -70,6 +78,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
     const [view, setView] = useState<'list' | 'customize'>('list');
     const [selectedApp, setSelectedApp] = useState<CatalogApp | null>(null);
     const [activeCustomizations, setActiveCustomizations] = useState<Set<string>>(new Set());
+    const [deploymentNotes, setDeploymentNotes] = useState('');
 
     const categories = ['All', ...new Set(APP_CATALOG.map(app => app.category))].sort();
 
@@ -92,6 +101,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
         if (app.customizations && app.customizations.length > 0) {
             setSelectedApp(app);
             setActiveCustomizations(new Set());
+            setDeploymentNotes('');
             setView('customize');
             setError(null);
         } else {
@@ -109,7 +119,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
         setActiveCustomizations(newSet);
     };
 
-    const downloadApp = async (app: CatalogApp, customizations: Set<string> = new Set(), silent = false) => {
+    const downloadApp = async (app: CatalogApp, customizations: Set<string> = new Set(), silent = false, notes = '') => {
         if (!silent) setDownloading(app.id);
         setError(null);
         try {
@@ -136,11 +146,12 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
 
             const appToPackage = {
                 ...app,
-                installCommand: finalInstallCommand
+                installCommand: finalInstallCommand,
+                notes
             };
 
             if (!silent) {
-                onSelect(appToPackage, file);
+                onSelect(appToPackage as any, file);
             }
             return { app: appToPackage, file };
         } catch (err) {
@@ -191,6 +202,8 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                     installBehavior: 'system' as const,
                     restartBehavior: 'suppress' as const,
                     assignments,
+                    closeAppBeforeInstall: killProcesses,
+                    skipIfRunning: skipIfRunning,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
                 };
@@ -242,68 +255,111 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                     </div>
                 </DialogHeader>
 
-                <div className="flex-1 overflow-y-auto space-y-8 pr-2 scrollbar-thin">
-                    <div className="bg-muted/30 p-6 rounded-2xl border border-border/60 shadow-sm">
-                        <div className="flex items-center gap-2 mb-4">
-                             <div className="p-1.5 bg-black/10 rounded-lg">
-                                <Code className="h-4 w-4 text-muted-foreground" />
-                             </div>
-                             <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Default Install Command</h4>
-                        </div>
-                        <code className="text-sm bg-black/90 text-blue-400 p-4 rounded-xl block font-mono break-all leading-relaxed shadow-xl border border-white/5">
-                            {selectedApp.installCommand}
-                        </code>
-                    </div>
-
-                    <div className="space-y-5">
-                        <div className="flex items-center gap-2">
-                             <div className="p-1.5 bg-primary/10 rounded-lg">
-                                <ListFilter className="h-4 w-4 text-primary" />
-                             </div>
-                             <h4 className="text-xl font-bold tracking-tight">Installation Tweaks</h4>
-                        </div>
-                        <div className="grid gap-4">
-                            {selectedApp.customizations?.map((customization) => (
-                                <div
-                                    key={customization.id}
-                                    className={cn(
-                                        "flex items-start space-x-5 p-5 border-2 rounded-2xl transition-all duration-300 cursor-pointer group",
-                                        activeCustomizations.has(customization.id)
-                                            ? "bg-primary/[0.03] border-primary shadow-md translate-x-1"
-                                            : "hover:bg-muted/50 border-border/60 hover:border-primary/30"
-                                    )}
-                                    onClick={() => toggleCustomization(customization.id)}
-                                >
-                                    <div className="flex items-center h-7">
-                                        <div className={cn(
-                                            "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
-                                            activeCustomizations.has(customization.id)
-                                                ? "bg-primary border-primary scale-110 shadow-lg shadow-primary/20"
-                                                : "border-muted-foreground/30 group-hover:border-primary/50"
-                                        )}>
-                                            {activeCustomizations.has(customization.id) && <Check className="h-4 w-4 text-primary-foreground stroke-[4]" />}
-                                        </div>
+                <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2 space-y-8">
+                            <div className="space-y-5">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-1.5 bg-primary/10 rounded-lg">
+                                        <ListFilter className="h-4 w-4 text-primary" />
                                     </div>
-                                    <div className="grid gap-2 leading-none flex-1">
-                                        <Label
-                                            className="text-lg font-bold cursor-pointer transition-colors group-hover:text-primary"
+                                    <h4 className="text-xl font-bold tracking-tight">Installation Tweaks</h4>
+                                </div>
+                                <div className="grid gap-4">
+                                    {selectedApp.customizations?.map((customization) => (
+                                        <div
+                                            key={customization.id}
+                                            className={cn(
+                                                "flex items-start space-x-5 p-5 border-2 rounded-2xl transition-all duration-300 cursor-pointer group",
+                                                activeCustomizations.has(customization.id)
+                                                    ? "bg-primary/[0.03] border-primary shadow-md translate-x-1"
+                                                    : "hover:bg-muted/50 border-border/60 hover:border-primary/30"
+                                            )}
+                                            onClick={() => toggleCustomization(customization.id)}
                                         >
-                                            {customization.label}
-                                        </Label>
-                                        {customization.description && (
-                                            <p className="text-muted-foreground leading-relaxed">
-                                                {customization.description}
-                                            </p>
-                                        )}
-                                        <div className="flex items-center gap-3 mt-1">
-                                            <span className="text-[10px] uppercase font-black text-muted-foreground/60 bg-muted px-2 py-1 rounded-md">CLI Argument</span>
-                                            <code className="text-xs text-primary font-mono bg-primary/10 px-3 py-1 rounded-md border border-primary/20">
-                                                {customization.arg}
-                                            </code>
+                                            <div className="flex items-center h-7">
+                                                <div className={cn(
+                                                    "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
+                                                    activeCustomizations.has(customization.id)
+                                                        ? "bg-primary border-primary scale-110 shadow-lg shadow-primary/20"
+                                                        : "border-muted-foreground/30 group-hover:border-primary/50"
+                                                )}>
+                                                    {activeCustomizations.has(customization.id) && <Check className="h-4 w-4 text-primary-foreground stroke-[4]" />}
+                                                </div>
+                                            </div>
+                                            <div className="grid gap-2 leading-none flex-1">
+                                                <Label
+                                                    className="text-lg font-bold cursor-pointer transition-colors group-hover:text-primary"
+                                                >
+                                                    {customization.label}
+                                                </Label>
+                                                {customization.description && (
+                                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                                        {customization.description}
+                                                    </p>
+                                                )}
+                                                <div className="flex items-center gap-3 mt-1">
+                                                    <span className="text-[10px] uppercase font-black text-muted-foreground/60 bg-muted px-2 py-1 rounded-md">CLI Argument</span>
+                                                    <code className="text-xs text-primary font-mono bg-primary/10 px-3 py-1 rounded-md border border-primary/20">
+                                                        {customization.arg}
+                                                    </code>
+                                                </div>
+                                            </div>
                                         </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="bg-muted/30 p-6 rounded-2xl border border-border/60 shadow-sm">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="p-1.5 bg-black/10 rounded-lg">
+                                        <Code className="h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                    <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Install Command</h4>
+                                </div>
+                                <code className="text-xs bg-black/90 text-blue-400 p-4 rounded-xl block font-mono break-all leading-relaxed shadow-xl border border-white/5">
+                                    {selectedApp.installCommand}
+                                    {selectedApp.customizations?.filter(c => activeCustomizations.has(c.id)).map(c => ` ${c.arg}`).join('')}
+                                </code>
+                            </div>
+
+                            <div className="bg-muted/30 p-6 rounded-2xl border border-border/60 shadow-sm">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="p-1.5 bg-black/10 rounded-lg">
+                                        <FileText className="h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                    <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Deployment Notes</h4>
+                                </div>
+                                <textarea
+                                    placeholder="Add any internal notes for this deployment..."
+                                    className="w-full bg-background/50 border border-border/40 rounded-xl p-4 text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all h-24 resize-none shadow-inner"
+                                    value={deploymentNotes}
+                                    onChange={(e) => setDeploymentNotes(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="bg-primary/5 p-6 rounded-2xl border border-primary/20">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Info className="h-4 w-4 text-primary" />
+                                    <h4 className="text-sm font-bold">App Info</h4>
+                                </div>
+                                <div className="space-y-3 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Publisher</span>
+                                        <span className="font-medium">{selectedApp.publisher}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Version</span>
+                                        <span className="font-medium">{selectedApp.version}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Category</span>
+                                        <span className="font-medium">{selectedApp.category}</span>
                                     </div>
                                 </div>
-                            ))}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -319,7 +375,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                         Cancel
                     </Button>
                     <Button
-                        onClick={() => downloadApp(selectedApp, activeCustomizations).catch(() => {})}
+                        onClick={() => downloadApp(selectedApp, activeCustomizations, false, deploymentNotes).catch(() => {})}
                         disabled={!!downloading}
                         className="gap-3 h-12 px-10 rounded-xl font-bold shadow-xl shadow-primary/25 bg-gradient-to-r from-primary to-blue-600 hover:scale-[1.02] active:scale-[0.98] transition-all"
                     >
@@ -414,6 +470,32 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                 onChange={(e) => setSearch(e.target.value)}
                             />
                         </div>
+
+                        <div className="flex items-center bg-muted/40 p-1.5 rounded-2xl border border-border/40 shadow-inner">
+                            <Button
+                                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                                size="icon"
+                                onClick={() => setViewMode('grid')}
+                                className={cn(
+                                    "h-11 w-11 rounded-xl transition-all duration-300",
+                                    viewMode === 'grid' ? "bg-background shadow-md text-primary" : "text-muted-foreground"
+                                )}
+                            >
+                                <LayoutGrid className="h-5 w-5" />
+                            </Button>
+                            <Button
+                                variant={viewMode === 'table' ? 'secondary' : 'ghost'}
+                                size="icon"
+                                onClick={() => setViewMode('table')}
+                                className={cn(
+                                    "h-11 w-11 rounded-xl transition-all duration-300",
+                                    viewMode === 'table' ? "bg-background shadow-md text-primary" : "text-muted-foreground"
+                                )}
+                            >
+                                <List className="h-5 w-5" />
+                            </Button>
+                        </div>
+
                         {selectedAppIds.size > 0 && (
                             <Button
                                 variant="outline"
@@ -433,127 +515,226 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 overflow-y-auto p-2 pr-4 scrollbar-thin">
-                        {filteredApps.map((app) => (
-                            <div
-                                key={app.id}
-                                className={cn(
-                                    "relative flex flex-col p-6 border-2 rounded-3xl transition-all duration-500 group cursor-pointer overflow-hidden min-h-[220px]",
-                                    selectedAppIds.has(app.id)
-                                        ? "border-primary bg-primary/[0.02] shadow-2xl shadow-primary/10 -translate-y-1"
-                                        : "bg-card hover:bg-muted/30 hover:shadow-xl hover:border-primary/20 hover:-translate-y-1"
-                                )}
-                                onClick={() => handleAppClick(app)}
-                            >
-                                {/* Glow effect on hover */}
-                                <div className="absolute -inset-24 bg-primary/5 blur-[100px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-
-                                <div className="absolute top-6 right-6 z-10" onClick={(e) => e.stopPropagation()}>
-                                    <div className="relative group/check">
-                                        <input
-                                            type="checkbox"
-                                            className="h-7 w-7 rounded-xl border-2 border-muted-foreground/20 text-primary focus:ring-primary cursor-pointer accent-primary transition-all duration-300 scale-110 opacity-0 absolute inset-0 z-20"
-                                            checked={selectedAppIds.has(app.id)}
-                                            onChange={(e) => {
-                                                const newSet = new Set(selectedAppIds);
-                                                if (e.target.checked) {
-                                                    newSet.add(app.id);
-                                                } else {
-                                                    newSet.delete(app.id);
-                                                }
-                                                setSelectedAppIds(newSet);
-                                            }}
-                                            data-testid={`app-checkbox-${app.id}`}
-                                            aria-label={`Select ${app.name}`}
-                                        />
-                                        <div className={cn(
-                                            "h-7 w-7 rounded-xl border-2 flex items-center justify-center transition-all duration-300",
-                                            selectedAppIds.has(app.id)
-                                                ? "bg-primary border-primary shadow-lg shadow-primary/20 scale-110"
-                                                : "bg-background/50 border-muted-foreground/20 group-hover/check:border-primary/50"
-                                        )}>
-                                            {selectedAppIds.has(app.id) && <Check className="h-4 w-4 text-primary-foreground stroke-[4]" />}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-6 items-start mb-6 relative">
-                                    <div className="relative flex-shrink-0 group-hover:scale-110 transition-transform duration-500">
-                                        <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-60 transition-opacity duration-500" />
-                                        {app.iconUrl && !iconErrors.has(app.id) ? (
-                                            <div className="relative h-20 w-20 bg-white rounded-3xl shadow-lg border-2 border-border/10 p-4 flex items-center justify-center overflow-hidden">
-                                                <img
-                                                    src={app.iconUrl}
-                                                    alt=""
-                                                    className="h-full w-full object-contain transition-transform duration-500 group-hover:rotate-3"
-                                                    onError={() => handleIconError(app.id)}
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div className="relative h-20 w-20 bg-secondary/50 rounded-3xl flex items-center justify-center border-2 border-dashed border-muted-foreground/20">
-                                                <Hammer className="h-10 w-10 text-muted-foreground/40" />
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="flex-1 min-w-0 pr-10">
-                                        <div className="flex items-center gap-2 mb-1.5">
-                                             <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-primary/10 text-primary uppercase tracking-widest border border-primary/10">
-                                                {app.category}
-                                            </span>
-                                            <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground uppercase tracking-widest">
-                                                v{app.version}
-                                            </span>
-                                        </div>
-                                        <h3 className="font-black text-2xl text-foreground truncate group-hover:text-primary transition-colors duration-300 leading-none">
-                                            {app.name}
-                                        </h3>
-                                        <p className="text-sm text-muted-foreground font-bold flex items-center gap-2 mt-2">
-                                            {app.publisher}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <p className="text-base text-muted-foreground/80 leading-relaxed line-clamp-2 mb-8 h-12 relative">
-                                    <span className="absolute -left-3 top-0 text-2xl text-primary/20 font-serif">"</span>
-                                    {app.description}
-                                </p>
-
-                                <div className="mt-auto flex items-center justify-between gap-4 relative">
-                                     <div className="flex gap-2">
-                                        {app.customizations && app.customizations.length > 0 && (
-                                             <div className="flex items-center gap-2 bg-blue-500/5 text-blue-600 px-3 py-1.5 rounded-xl border border-blue-500/10 shadow-sm">
-                                                <Wrench className="h-3.5 w-3.5 stroke-[2.5]" />
-                                                <span className="text-[10px] font-black uppercase tracking-wider">Customizable</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <Button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleAppClick(app);
-                                        }}
-                                        disabled={!!downloading}
+                    <div className="flex-1 overflow-y-auto p-2 pr-4 scrollbar-thin">
+                        {viewMode === 'grid' ? (
+                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                                {filteredApps.map((app) => (
+                                    <div
+                                        key={app.id}
                                         className={cn(
-                                            "gap-2.5 rounded-2xl font-black text-xs h-11 px-6 transition-all duration-300 active:scale-95 shadow-lg",
-                                            app.customizations?.length
-                                                ? "bg-secondary hover:bg-secondary/80 text-secondary-foreground hover:shadow-secondary/20"
-                                                : "bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20"
+                                            "relative flex flex-col p-6 border-2 rounded-3xl transition-all duration-500 group cursor-pointer overflow-hidden min-h-[220px]",
+                                            selectedAppIds.has(app.id)
+                                                ? "border-primary bg-primary/[0.02] shadow-2xl shadow-primary/10 -translate-y-1"
+                                                : "bg-card hover:bg-muted/30 hover:shadow-xl hover:border-primary/20 hover:-translate-y-1"
                                         )}
+                                        onClick={() => handleAppClick(app)}
                                     >
-                                        {downloading === app.id ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <>
-                                                <Download className="h-4 w-4" />
-                                                {app.customizations?.length ? 'Configure' : 'Deploy Now'}
-                                            </>
-                                        )}
-                                    </Button>
-                                </div>
+                                        {/* Glow effect on hover */}
+                                        <div className="absolute -inset-24 bg-primary/5 blur-[100px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+                                        <div className="absolute top-6 right-6 z-10" onClick={(e) => e.stopPropagation()}>
+                                            <div className="relative group/check">
+                                                <input
+                                                    type="checkbox"
+                                                    className="h-7 w-7 rounded-xl border-2 border-muted-foreground/20 text-primary focus:ring-primary cursor-pointer accent-primary transition-all duration-300 scale-110 opacity-0 absolute inset-0 z-20"
+                                                    checked={selectedAppIds.has(app.id)}
+                                                    onChange={(e) => {
+                                                        const newSet = new Set(selectedAppIds);
+                                                        if (e.target.checked) {
+                                                            newSet.add(app.id);
+                                                        } else {
+                                                            newSet.delete(app.id);
+                                                        }
+                                                        setSelectedAppIds(newSet);
+                                                    }}
+                                                    data-testid={`app-checkbox-${app.id}`}
+                                                    aria-label={`Select ${app.name}`}
+                                                />
+                                                <div className={cn(
+                                                    "h-7 w-7 rounded-xl border-2 flex items-center justify-center transition-all duration-300",
+                                                    selectedAppIds.has(app.id)
+                                                        ? "bg-primary border-primary shadow-lg shadow-primary/20 scale-110"
+                                                        : "bg-background/50 border-muted-foreground/20 group-hover/check:border-primary/50"
+                                                )}>
+                                                    {selectedAppIds.has(app.id) && <Check className="h-4 w-4 text-primary-foreground stroke-[4]" />}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-6 items-start mb-6 relative">
+                                            <div className="relative flex-shrink-0 group-hover:scale-110 transition-transform duration-500">
+                                                <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-60 transition-opacity duration-500" />
+                                                {app.iconUrl && !iconErrors.has(app.id) ? (
+                                                    <div className="relative h-20 w-20 bg-white rounded-3xl shadow-lg border-2 border-border/10 p-4 flex items-center justify-center overflow-hidden">
+                                                        <img
+                                                            src={app.iconUrl}
+                                                            alt=""
+                                                            className="h-full w-full object-contain transition-transform duration-500 group-hover:rotate-3"
+                                                            onError={() => handleIconError(app.id)}
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="relative h-20 w-20 bg-secondary/50 rounded-3xl flex items-center justify-center border-2 border-dashed border-muted-foreground/20">
+                                                        <Hammer className="h-10 w-10 text-muted-foreground/40" />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex-1 min-w-0 pr-10">
+                                                <div className="flex items-center gap-2 mb-1.5">
+                                                    <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-primary/10 text-primary uppercase tracking-widest border border-primary/10">
+                                                        {app.category}
+                                                    </span>
+                                                    <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground uppercase tracking-widest">
+                                                        v{app.version}
+                                                    </span>
+                                                </div>
+                                                <h3 className="font-black text-2xl text-foreground truncate group-hover:text-primary transition-colors duration-300 leading-none">
+                                                    {app.name}
+                                                </h3>
+                                                <p className="text-sm text-muted-foreground font-bold flex items-center gap-2 mt-2">
+                                                    {app.publisher}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <p className="text-base text-muted-foreground/80 leading-relaxed line-clamp-2 mb-8 h-12 relative">
+                                            <span className="absolute -left-3 top-0 text-2xl text-primary/20 font-serif">"</span>
+                                            {app.description}
+                                        </p>
+
+                                        <div className="mt-auto flex items-center justify-between gap-4 relative">
+                                            <div className="flex gap-2">
+                                                {app.customizations && app.customizations.length > 0 && (
+                                                    <div className="flex items-center gap-2 bg-blue-500/5 text-blue-600 px-3 py-1.5 rounded-xl border border-blue-500/10 shadow-sm">
+                                                        <Wrench className="h-3.5 w-3.5 stroke-[2.5]" />
+                                                        <span className="text-[10px] font-black uppercase tracking-wider">Customizable</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <Button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleAppClick(app);
+                                                }}
+                                                disabled={!!downloading}
+                                                className={cn(
+                                                    "gap-2.5 rounded-2xl font-black text-xs h-11 px-6 transition-all duration-300 active:scale-95 shadow-lg",
+                                                    app.customizations?.length
+                                                        ? "bg-secondary hover:bg-secondary/80 text-secondary-foreground hover:shadow-secondary/20"
+                                                        : "bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20"
+                                                )}
+                                            >
+                                                {downloading === app.id ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        <Download className="h-4 w-4" />
+                                                        {app.customizations?.length ? 'Configure' : 'Deploy Now'}
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        ) : (
+                            <div className="bg-card/50 rounded-[2rem] border border-border/40 overflow-hidden shadow-2xl">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-muted/30 border-b border-border/40">
+                                            <th className="p-6 w-12"></th>
+                                            <th className="p-6 font-black uppercase tracking-widest text-[10px] text-muted-foreground">Application</th>
+                                            <th className="p-6 font-black uppercase tracking-widest text-[10px] text-muted-foreground">Publisher</th>
+                                            <th className="p-6 font-black uppercase tracking-widest text-[10px] text-muted-foreground">Version</th>
+                                            <th className="p-6 font-black uppercase tracking-widest text-[10px] text-muted-foreground text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border/20">
+                                        {filteredApps.map((app) => (
+                                            <tr
+                                                key={app.id}
+                                                className={cn(
+                                                    "group hover:bg-primary/[0.02] transition-colors cursor-pointer",
+                                                    selectedAppIds.has(app.id) && "bg-primary/[0.04]"
+                                                )}
+                                                onClick={() => handleAppClick(app)}
+                                            >
+                                                <td className="p-6" onClick={(e) => e.stopPropagation()}>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="opacity-0 absolute inset-0 z-20 cursor-pointer"
+                                                            checked={selectedAppIds.has(app.id)}
+                                                            onChange={(e) => {
+                                                                const newSet = new Set(selectedAppIds);
+                                                                if (e.target.checked) {
+                                                                    newSet.add(app.id);
+                                                                } else {
+                                                                    newSet.delete(app.id);
+                                                                }
+                                                                setSelectedAppIds(newSet);
+                                                            }}
+                                                        />
+                                                        <div className={cn(
+                                                            "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
+                                                            selectedAppIds.has(app.id)
+                                                                ? "bg-primary border-primary shadow-lg shadow-primary/20"
+                                                                : "bg-background border-muted-foreground/20 group-hover:border-primary/50"
+                                                        )}>
+                                                            {selectedAppIds.has(app.id) && <Check className="h-3.5 w-3.5 text-primary-foreground stroke-[4]" />}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="p-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="h-10 w-10 bg-white rounded-xl border p-1.5 flex items-center justify-center flex-shrink-0">
+                                                            {app.iconUrl && !iconErrors.has(app.id) ? (
+                                                                <img
+                                                                    src={app.iconUrl}
+                                                                    alt=""
+                                                                    className="h-full w-full object-contain"
+                                                                    onError={() => handleIconError(app.id)}
+                                                                />
+                                                            ) : (
+                                                                <Hammer className="h-5 w-5 text-muted-foreground/40" />
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold group-hover:text-primary transition-colors">{app.name}</p>
+                                                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">{app.category}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="p-6 text-sm font-medium text-muted-foreground">
+                                                    {app.publisher}
+                                                </td>
+                                                <td className="p-6">
+                                                    <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground uppercase tracking-widest">
+                                                        v{app.version}
+                                                    </span>
+                                                </td>
+                                                <td className="p-6 text-right">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-9 px-4 rounded-xl font-bold gap-2 hover:bg-primary hover:text-primary-foreground transition-all"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleAppClick(app);
+                                                        }}
+                                                    >
+                                                        {app.customizations?.length ? <Wrench className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
+                                                        {app.customizations?.length ? 'Configure' : 'Deploy'}
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
 
                         {filteredApps.length === 0 && (
                             <div className="col-span-full py-32 flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 duration-500">
@@ -595,37 +776,79 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                     </div>
 
                                     <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-                                        <div className="flex items-center gap-3 bg-muted/60 px-6 py-2.5 rounded-[1.25rem] border-2 border-border/50 h-16 shadow-inner">
-                                            <div className="relative h-6 w-6">
-                                                <input
-                                                    type="checkbox"
-                                                    id="auto-assign"
-                                                    checked={autoAssign}
-                                                    onChange={(e) => setAutoAssign(e.target.checked)}
-                                                    className="opacity-0 absolute inset-0 z-20 cursor-pointer"
-                                                />
-                                                <div className={cn(
-                                                    "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
-                                                    autoAssign ? "bg-primary border-primary shadow-lg shadow-primary/20" : "bg-background border-muted-foreground/30"
-                                                )}>
-                                                    {autoAssign && <Check className="h-3.5 w-3.5 text-primary-foreground stroke-[4]" />}
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center gap-6 px-6 py-2.5 bg-muted/40 rounded-2xl border border-border/40 h-10 shadow-inner">
+                                                <div className="flex items-center gap-2 group/opt">
+                                                    <div className="relative h-4 w-4">
+                                                        <input
+                                                            type="checkbox"
+                                                            id="kill-opt"
+                                                            checked={killProcesses}
+                                                            onChange={(e) => setKillProcesses(e.target.checked)}
+                                                            className="opacity-0 absolute inset-0 z-20 cursor-pointer"
+                                                        />
+                                                        <div className={cn(
+                                                            "h-4 w-4 rounded border transition-all duration-300",
+                                                            killProcesses ? "bg-primary border-primary shadow-sm" : "bg-background border-muted-foreground/30"
+                                                        )}>
+                                                            {killProcesses && <Check className="h-2.5 w-2.5 text-primary-foreground stroke-[4]" />}
+                                                        </div>
+                                                    </div>
+                                                    <Label htmlFor="kill-opt" className="text-[10px] font-bold cursor-pointer uppercase tracking-tighter text-muted-foreground group-hover/opt:text-foreground">Kill Processes</Label>
+                                                </div>
+
+                                                <div className="flex items-center gap-2 group/opt">
+                                                    <div className="relative h-4 w-4">
+                                                        <input
+                                                            type="checkbox"
+                                                            id="skip-opt"
+                                                            checked={skipIfRunning}
+                                                            onChange={(e) => setSkipIfRunning(e.target.checked)}
+                                                            className="opacity-0 absolute inset-0 z-20 cursor-pointer"
+                                                        />
+                                                        <div className={cn(
+                                                            "h-4 w-4 rounded border transition-all duration-300",
+                                                            skipIfRunning ? "bg-primary border-primary shadow-sm" : "bg-background border-muted-foreground/30"
+                                                        )}>
+                                                            {skipIfRunning && <Check className="h-2.5 w-2.5 text-primary-foreground stroke-[4]" />}
+                                                        </div>
+                                                    </div>
+                                                    <Label htmlFor="skip-opt" className="text-[10px] font-bold cursor-pointer uppercase tracking-tighter text-muted-foreground group-hover/opt:text-foreground">Skip if Running</Label>
                                                 </div>
                                             </div>
-                                            <Label htmlFor="auto-assign" className="text-xs font-black cursor-pointer uppercase tracking-widest text-muted-foreground/80">Auto-Assign to</Label>
-                                            {autoAssign && (
-                                                <select
-                                                    value={assignmentTarget}
-                                                    onChange={(e) => setAssignmentTarget(e.target.value as any)}
-                                                    className="text-xs bg-primary/10 rounded-lg px-3 py-1.5 border-none focus:ring-2 focus:ring-primary/20 font-black text-primary cursor-pointer outline-none transition-all hover:bg-primary/20 ml-2 shadow-sm"
-                                                >
-                                                    <option value="all-devices">All Devices</option>
-                                                    <option value="all-users">All Users</option>
-                                                </select>
-                                            )}
+
+                                            <div className="flex items-center gap-3 bg-muted/60 px-6 py-2.5 rounded-[1.25rem] border-2 border-border/50 h-12 shadow-inner">
+                                                <div className="relative h-6 w-6">
+                                                    <input
+                                                        type="checkbox"
+                                                        id="auto-assign"
+                                                        checked={autoAssign}
+                                                        onChange={(e) => setAutoAssign(e.target.checked)}
+                                                        className="opacity-0 absolute inset-0 z-20 cursor-pointer"
+                                                    />
+                                                    <div className={cn(
+                                                        "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
+                                                        autoAssign ? "bg-primary border-primary shadow-lg shadow-primary/20" : "bg-background border-muted-foreground/30"
+                                                    )}>
+                                                        {autoAssign && <Check className="h-3.5 w-3.5 text-primary-foreground stroke-[4]" />}
+                                                    </div>
+                                                </div>
+                                                <Label htmlFor="auto-assign" className="text-xs font-black cursor-pointer uppercase tracking-widest text-muted-foreground/80">Auto-Assign to</Label>
+                                                {autoAssign && (
+                                                    <select
+                                                        value={assignmentTarget}
+                                                        onChange={(e) => setAssignmentTarget(e.target.value as any)}
+                                                        className="text-xs bg-primary/10 rounded-lg px-3 py-1.5 border-none focus:ring-2 focus:ring-primary/20 font-black text-primary cursor-pointer outline-none transition-all hover:bg-primary/20 ml-2 shadow-sm"
+                                                    >
+                                                        <option value="all-devices">All Devices</option>
+                                                        <option value="all-users">All Users</option>
+                                                    </select>
+                                                )}
+                                            </div>
                                         </div>
 
                                         <Button
-                                            className="h-16 px-12 gap-4 shadow-2xl shadow-primary/30 bg-gradient-to-br from-primary via-primary to-blue-600 font-black text-lg rounded-[1.25rem] hover:scale-[1.02] active:scale-[0.98] transition-all w-full lg:w-auto border-t border-white/20"
+                                            className="h-24 px-12 gap-4 shadow-2xl shadow-primary/30 bg-gradient-to-br from-primary via-primary to-blue-600 font-black text-lg rounded-[1.25rem] hover:scale-[1.02] active:scale-[0.98] transition-all w-full lg:w-auto border-t border-white/20"
                                             onClick={handleBulkDownload}
                                             disabled={bulkDownloading}
                                         >
