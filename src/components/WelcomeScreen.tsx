@@ -11,9 +11,10 @@ import {
 } from '@/components/ui/dialog';
 import { useState } from 'react';
 import type { PackageConfig } from '@/lib/package-config';
+import { createEmptyPackageConfig } from '@/lib/package-config';
 
 export function WelcomeScreen() {
-    const { createNewConfig, setSelectedFile, setCurrentConfig } = usePackage();
+    const { createNewConfig, setSelectedFile, setCurrentConfig, addConfigs } = usePackage();
     const [catalogOpen, setCatalogOpen] = useState(false);
     const [templatesOpen, setTemplatesOpen] = useState(false);
 
@@ -38,6 +39,31 @@ export function WelcomeScreen() {
 
         setCurrentConfig(updatedConfig);
         setSelectedFile(file);
+        setCatalogOpen(false);
+    };
+
+    const handleCatalogAdd = (apps: CatalogApp[]) => {
+        const newConfigs = apps.map(app => {
+            const config = createEmptyPackageConfig();
+            return {
+                ...config,
+                name: app.name,
+                displayName: app.name,
+                publisher: app.publisher,
+                description: app.description,
+                version: app.version,
+                setupFileName: app.filename,
+                installCommandLine: app.installCommand,
+                uninstallCommandLine: app.uninstallCommand,
+                detectionRules: app.detectionRules,
+                packageType: app.filename.toLowerCase().endsWith('.msi') ? 'MSI' : 'EXE',
+                sourceType: 'url',
+                sourceUrl: app.downloadUrl,
+                updatedAt: new Date().toISOString(),
+            } as PackageConfig;
+        });
+
+        addConfigs(newConfigs);
         setCatalogOpen(false);
     };
 
@@ -129,7 +155,7 @@ export function WelcomeScreen() {
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-3xl">
-                           <AppCatalog onSelect={handleCatalogSelect} />
+                           <AppCatalog onSelect={handleCatalogSelect} onAdd={handleCatalogAdd} />
                         </DialogContent>
                     </Dialog>
 
