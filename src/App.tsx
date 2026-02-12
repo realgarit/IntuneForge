@@ -22,9 +22,9 @@ function PackageEditor() {
   }
 
   return (
-    <div className="flex-1 space-y-6 overflow-y-auto">
+    <div className="flex-1 space-y-8 overflow-y-auto scrollbar-thin pr-2">
       <Tabs defaultValue="package" className="w-full">
-        <TabsList className="w-full justify-start">
+        <TabsList className="w-full justify-start bg-muted/40 p-1 rounded-xl border border-border/40 mb-2">
           <TabsTrigger value="package" className="gap-2">
             <Package className="h-4 w-4" />
             Package
@@ -57,8 +57,8 @@ function AppContent() {
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
-      <main className="flex-1 container mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6 min-h-[calc(100vh-8rem)]">
+      <main className="flex-1 container mx-auto px-6 py-8">
+        <div className="flex flex-col lg:flex-row gap-8 min-h-[calc(100vh-10rem)]">
           <Sidebar />
           <PackageEditor />
         </div>

@@ -33,17 +33,17 @@ export function Header() {
     };
 
     return (
-        <header className="glass sticky top-0 z-50">
-            <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+        <header className="glass sticky top-0 z-50 border-b border-white/5 shadow-2xl">
+            <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary to-blue-600 text-primary-foreground shadow-xl shadow-primary/20 ring-1 ring-white/20">
                         <Hammer className="h-6 w-6" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold text-foreground tracking-tight">
+                        <h1 className="text-2xl font-black text-foreground tracking-tighter bg-gradient-to-br from-white to-white/60 bg-clip-text text-transparent">
                             IntuneForge
                         </h1>
-                        <p className="text-xs text-muted-foreground font-medium">Win32 App Packager</p>
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em] -mt-1 opacity-70">Win32 App Packager</p>
                     </div>
                 </div>
 

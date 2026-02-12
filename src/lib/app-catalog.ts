@@ -77,6 +77,12 @@ export const APP_CATALOG: CatalogApp[] = [
                 id: 'no-desktop-shortcut',
                 label: 'No Desktop Shortcut',
                 arg: 'DESKTOP_SHORTCUT=false'
+            },
+            {
+                id: 'close-app',
+                label: 'Close app before install',
+                description: 'Ensures the application is not running before installation begins.',
+                arg: '--kill'
             }
         ]
     },
@@ -98,7 +104,15 @@ export const APP_CATALOG: CatalogApp[] = [
             fileOrFolderName: 'chrome.exe',
             detectionType: 'exists',
             check32BitOn64System: false
-        }]
+        }],
+        customizations: [
+            {
+                id: 'close-app',
+                label: 'Close app before install',
+                description: 'Ensures the application is not running before installation begins.',
+                arg: '--kill'
+            }
+        ]
     },
     {
         id: 'npp',
@@ -109,7 +123,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Development',
         downloadUrl: 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.6/npp.8.6.Installer.x64.exe',
         filename: 'npp.8.6.Installer.x64.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/f5/Notepad%2B%2B_logo.png',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Notepad%2B%2B_Logo.svg/256px-Notepad%2B%2B_Logo.svg.png',
         installCommand: 'npp.8.6.Installer.x64.exe /S',
         uninstallCommand: '%ProgramFiles%\\Notepad++\\uninstall.exe /S',
         detectionRules: [{
@@ -151,13 +165,13 @@ export const APP_CATALOG: CatalogApp[] = [
         filename: 'ZoomInstallerFull.msi',
         iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Zoom_Communications_Logo.svg/256px-Zoom_Communications_Logo.svg.png',
         installCommand: 'msiexec /i "ZoomInstallerFull.msi" /qn /norestart',
-        uninstallCommand: 'msiexec /x {ProductCode} /qn', // Note: Needs actual product code or dynamic detection
+        uninstallCommand: 'msiexec /x {ProductCode} /qn',
         detectionRules: [{
             type: 'file',
             path: '%ProgramFiles%\\Zoom\\bin',
             fileOrFolderName: 'Zoom.exe',
             detectionType: 'exists',
-            check32BitOn64System: true // Zoom is often 32-bit
+            check32BitOn64System: true
         }],
         customizations: [
             {
@@ -169,6 +183,12 @@ export const APP_CATALOG: CatalogApp[] = [
                 id: 'no-desktop-icon',
                 label: 'No Desktop Icon',
                 arg: 'ZConfig="DesktopIcon=0"'
+            },
+            {
+                id: 'close-app',
+                label: 'Close app before install',
+                description: 'Ensures the application is not running before installation begins.',
+                arg: '--kill'
             }
         ]
     },
@@ -179,7 +199,7 @@ export const APP_CATALOG: CatalogApp[] = [
         description: 'Slack is a new way to communicate with your team.',
         version: 'Latest',
         category: 'Communication',
-        downloadUrl: 'https://downloads.slack-edge.com/releases/windows/4.36.136/prod/x64/SlackSetup.msi', // This might break if version updates, but for demo it's fine. Ideally use a "latest" endpoint.
+        downloadUrl: 'https://downloads.slack-edge.com/releases/windows/4.36.136/prod/x64/SlackSetup.msi',
         filename: 'SlackSetup.msi',
         iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Slack_icon_2019.svg/256px-Slack_icon_2019.svg.png',
         installCommand: 'msiexec /i "SlackSetup.msi" /qn /norestart',
@@ -190,7 +210,15 @@ export const APP_CATALOG: CatalogApp[] = [
             fileOrFolderName: 'slack.exe',
             detectionType: 'exists',
             check32BitOn64System: false
-        }]
+        }],
+        customizations: [
+            {
+                id: 'close-app',
+                label: 'Close app before install',
+                description: 'Ensures the application is not running before installation begins.',
+                arg: '--kill'
+            }
+        ]
     },
     {
         id: 'vscode',
@@ -199,8 +227,8 @@ export const APP_CATALOG: CatalogApp[] = [
         description: 'Code editing. Redefined.',
         version: 'Latest',
         category: 'Development',
-        downloadUrl: 'https://code.visualstudio.com/sha/download?build=stable&os=win32-x64', // This redirects to exe
-        filename: 'VSCodeUserSetup-x64.exe', // Usually it's an exe
+        downloadUrl: 'https://code.visualstudio.com/sha/download?build=stable&os=win32-x64',
+        filename: 'VSCodeUserSetup-x64.exe',
         iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/256px-Visual_Studio_Code_1.35_icon.svg.png',
         installCommand: 'VSCodeSetup-x64.exe /VERYSILENT /MERGETASKS=!runcode',
         uninstallCommand: '%ProgramFiles%\\Microsoft VS Code\\unins000.exe /VERYSILENT',
@@ -226,9 +254,9 @@ export const APP_CATALOG: CatalogApp[] = [
         description: 'Microsoft PowerToys is a set of utilities for power users to tune and streamline their Windows experience.',
         version: 'Latest',
         category: 'Utilities',
-        downloadUrl: 'https://github.com/microsoft/PowerToys/releases/download/v0.79.0/PowerToysSetup-0.79.0-x64.exe', // Hardcoded version for safety
+        downloadUrl: 'https://github.com/microsoft/PowerToys/releases/download/v0.79.0/PowerToysSetup-0.79.0-x64.exe',
         filename: 'PowerToysSetup.exe',
-        iconUrl: 'https://raw.githubusercontent.com/microsoft/PowerToys/main/doc/images/logo.png',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Microsoft_PowerToys_logo.svg/256px-Microsoft_PowerToys_logo.svg.png',
         installCommand: 'PowerToysSetup.exe /install /quiet /norestart',
         uninstallCommand: '%ProgramFiles%\\PowerToys\\uninstall.exe /quiet',
         detectionRules: [{
@@ -277,7 +305,15 @@ export const APP_CATALOG: CatalogApp[] = [
             fileOrFolderName: 'Update.exe',
             detectionType: 'exists',
             check32BitOn64System: false
-        }]
+        }],
+        customizations: [
+            {
+                id: 'close-app',
+                label: 'Close app before install',
+                description: 'Ensures the application is not running before installation begins.',
+                arg: '--kill'
+            }
+        ]
     },
     {
         id: 'dropbox',
@@ -355,6 +391,103 @@ export const APP_CATALOG: CatalogApp[] = [
             type: 'file',
             path: '%LocalAppData%\\Microsoft\\WindowsApps',
             fileOrFolderName: 'ms-teams.exe',
+            detectionType: 'exists',
+            check32BitOn64System: false
+        }]
+    },
+    {
+        id: 'winrar',
+        name: 'WinRAR 7.01 (x64)',
+        publisher: 'win.rar GmbH',
+        description: 'WinRAR is a powerful archive manager. It can backup your data and reduce the size of email attachments.',
+        version: '7.01',
+        category: 'Utilities',
+        downloadUrl: 'https://www.rarlab.com/rar/winrar-x64-701.exe',
+        filename: 'winrar-x64-701.exe',
+        iconUrl: 'https://www.win-rar.com/fileadmin/winrar-logos/winrar-logo-small.png',
+        installCommand: 'winrar-x64-701.exe /S',
+        uninstallCommand: '%ProgramFiles%\\WinRAR\\uninstall.exe /S',
+        detectionRules: [{
+            type: 'file',
+            path: '%ProgramFiles%\\WinRAR',
+            fileOrFolderName: 'WinRAR.exe',
+            detectionType: 'exists',
+            check32BitOn64System: false
+        }]
+    },
+    {
+        id: 'putty',
+        name: 'PuTTY 0.80 (x64)',
+        publisher: 'Simon Tatham',
+        description: 'PuTTY is a free and open-source terminal emulator, serial console and network file transfer application.',
+        version: '0.80',
+        category: 'Development',
+        downloadUrl: 'https://the.earth.li/~sgtatham/putty/latest/w64/putty-64bit-0.80-installer.msi',
+        filename: 'putty-64bit-0.80-installer.msi',
+        iconUrl: 'https://www.chiark.greenend.org.uk/~sgtatham/putty/putty-icon-128.png',
+        installCommand: 'msiexec /i "putty-64bit-0.80-installer.msi" /qn',
+        uninstallCommand: 'msiexec /x {ProductCode} /qn',
+        detectionRules: [{
+            type: 'msi',
+            productCode: '{74F3B367-73E8-41E3-8B39-6E2A5D5A4C0A}' // Example code
+        }]
+    },
+    {
+        id: 'git',
+        name: 'Git for Windows',
+        publisher: 'The Git Development Community',
+        description: 'Git is a free and open source distributed version control system.',
+        version: '2.44.0',
+        category: 'Development',
+        downloadUrl: 'https://github.com/git-for-windows/git/releases/download/v2.44.0.windows.1/Git-2.44.0-64-bit.exe',
+        filename: 'Git-64-bit.exe',
+        iconUrl: 'https://git-scm.com/images/logos/downloads/Git-Icon-1788C.png',
+        installCommand: 'Git-64-bit.exe /VERYSILENT /NORESTART',
+        uninstallCommand: '%ProgramFiles%\\Git\\unins000.exe /VERYSILENT',
+        detectionRules: [{
+            type: 'file',
+            path: '%ProgramFiles%\\Git\\bin',
+            fileOrFolderName: 'git.exe',
+            detectionType: 'exists',
+            check32BitOn64System: false
+        }]
+    },
+    {
+        id: 'docker',
+        name: 'Docker Desktop',
+        publisher: 'Docker Inc.',
+        description: 'Docker Desktop is an easy-to-install application that enables you to build and share containerized applications and microservices.',
+        version: '4.28.0',
+        category: 'Development',
+        downloadUrl: 'https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe',
+        filename: 'Docker Desktop Installer.exe',
+        iconUrl: 'https://www.docker.com/wp-content/uploads/2023/05/symbol-blue-docker-logo.png',
+        installCommand: '"Docker Desktop Installer.exe" install --quiet',
+        uninstallCommand: '"Docker Desktop Installer.exe" uninstall --quiet',
+        detectionRules: [{
+            type: 'file',
+            path: '%ProgramFiles%\\Docker\\Docker',
+            fileOrFolderName: 'Docker Desktop.exe',
+            detectionType: 'exists',
+            check32BitOn64System: false
+        }]
+    },
+    {
+        id: 'spotify',
+        name: 'Spotify',
+        publisher: 'Spotify AB',
+        description: 'Spotify is a digital music service that gives you access to millions of songs.',
+        version: 'Latest',
+        category: 'Media',
+        downloadUrl: 'https://download.scdn.co/SpotifySetup.exe',
+        filename: 'SpotifySetup.exe',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Spotify_logo_without_text.svg/256px-Spotify_logo_without_text.svg.png',
+        installCommand: 'SpotifySetup.exe /silent',
+        uninstallCommand: '%LocalAppData%\\Spotify\\Spotify.exe --uninstall --silent',
+        detectionRules: [{
+            type: 'file',
+            path: '%LocalAppData%\\Spotify',
+            fileOrFolderName: 'Spotify.exe',
             detectionType: 'exists',
             check32BitOn64System: false
         }]

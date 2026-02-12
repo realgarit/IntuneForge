@@ -78,6 +78,11 @@ export interface PackageConfig {
     // Metadata
     createdAt: string;
     updatedAt: string;
+
+    // Global Options (Patch My PC style)
+    closeAppBeforeInstall?: boolean;
+    skipIfRunning?: boolean;
+    notes?: string;
 }
 
 /**
@@ -113,6 +118,9 @@ export function createEmptyPackageConfig(): PackageConfig {
         assignments: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        closeAppBeforeInstall: false,
+        skipIfRunning: false,
+        notes: '',
     };
 }
 
