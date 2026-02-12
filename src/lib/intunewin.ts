@@ -19,6 +19,7 @@ export interface PackageInfo {
     publisher: string;
     setupFile: string;
     file: File;
+    additionalFiles?: File[];
 }
 
 export interface PackageResult {
@@ -181,6 +182,15 @@ export async function createIntuneWinPackage(
     // Create the inner ZIP containing the source file
     const innerZip = new JSZip();
     innerZip.file(packageInfo.setupFile, fileBytes, { compression: 'DEFLATE' });
+
+    // Add additional files if any
+    if (packageInfo.additionalFiles && packageInfo.additionalFiles.length > 0) {
+        onProgress?.('Adding additional files...', 15);
+        for (const file of packageInfo.additionalFiles) {
+            const buffer = await file.arrayBuffer();
+            innerZip.file(file.name, new Uint8Array(buffer), { compression: 'DEFLATE' });
+        }
+    }
 
     const innerZipBlob = await innerZip.generateAsync({
         type: 'arraybuffer',

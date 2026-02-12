@@ -10,12 +10,14 @@ interface PackageContextType {
     configs: PackageConfig[];
     currentConfig: PackageConfig | null;
     selectedFile: File | null;
+    additionalFiles: File[];
     setCurrentConfig: (config: PackageConfig | null) => void;
     updateCurrentConfig: (updates: Partial<PackageConfig>) => void;
     createNewConfig: () => PackageConfig;
     saveCurrentConfig: () => void;
     deleteConfig: (id: string) => void;
     setSelectedFile: (file: File | null) => void;
+    setAdditionalFiles: (files: File[]) => void;
 }
 
 const PackageContext = createContext<PackageContextType | undefined>(undefined);
@@ -24,6 +26,7 @@ export function PackageProvider({ children }: { children: React.ReactNode }) {
     const [configs, setConfigs] = useState<PackageConfig[]>([]);
     const [currentConfig, setCurrentConfig] = useState<PackageConfig | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [additionalFiles, setAdditionalFiles] = useState<File[]>([]);
 
     // Load saved configs on mount
     useEffect(() => {
@@ -52,6 +55,7 @@ export function PackageProvider({ children }: { children: React.ReactNode }) {
         const newConfig = createEmptyPackageConfig();
         setCurrentConfig(newConfig);
         setSelectedFile(null);
+        setAdditionalFiles([]);
         return newConfig;
     }, []);
 
@@ -74,6 +78,7 @@ export function PackageProvider({ children }: { children: React.ReactNode }) {
         if (currentConfig?.id === id) {
             setCurrentConfig(null);
             setSelectedFile(null);
+            setAdditionalFiles([]);
         }
     }, [currentConfig]);
 
@@ -83,12 +88,14 @@ export function PackageProvider({ children }: { children: React.ReactNode }) {
                 configs,
                 currentConfig,
                 selectedFile,
+                additionalFiles,
                 setCurrentConfig,
                 updateCurrentConfig,
                 createNewConfig,
                 saveCurrentConfig,
                 deleteConfig,
                 setSelectedFile,
+                setAdditionalFiles,
             }}
         >
             {children}
