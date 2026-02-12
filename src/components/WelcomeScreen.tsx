@@ -1,9 +1,57 @@
-import { Hammer, Package, ArrowRight, Settings2, CloudUpload } from 'lucide-react';
+import { Hammer, Package, ArrowRight, Settings2, CloudUpload, Library, FileCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePackage } from '@/contexts/PackageContext';
+import { AppCatalog } from '@/components/AppCatalog';
+import { TemplatesManager } from '@/components/TemplatesManager';
+import type { CatalogApp } from '@/lib/app-catalog';
+import {
+    Dialog,
+    DialogContent,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import { useState } from 'react';
+import type { PackageConfig } from '@/lib/package-config';
 
 export function WelcomeScreen() {
-    const { createNewConfig } = usePackage();
+    const { createNewConfig, setSelectedFile, setCurrentConfig } = usePackage();
+    const [catalogOpen, setCatalogOpen] = useState(false);
+    const [templatesOpen, setTemplatesOpen] = useState(false);
+
+    const handleCatalogSelect = (app: CatalogApp, file: File) => {
+        const newConfig = createNewConfig();
+
+        // Populate config from catalog app
+        const updatedConfig: PackageConfig = {
+            ...newConfig,
+            name: app.name,
+            displayName: app.name,
+            publisher: app.publisher,
+            description: app.description,
+            version: app.version,
+            setupFileName: app.filename,
+            installCommandLine: app.installCommand,
+            uninstallCommandLine: app.uninstallCommand,
+            detectionRules: app.detectionRules,
+            packageType: app.filename.toLowerCase().endsWith('.msi') ? 'MSI' : 'EXE',
+            updatedAt: new Date().toISOString(),
+        };
+
+        setCurrentConfig(updatedConfig);
+        setSelectedFile(file);
+        setCatalogOpen(false);
+    };
+
+    const handleTemplateSelect = (template: PackageConfig) => {
+        const newConfig = {
+            ...template,
+            id: crypto.randomUUID(),
+            name: template.name.replace(' (Template)', ''),
+            updatedAt: new Date().toISOString(),
+        };
+        setCurrentConfig(newConfig);
+        setSelectedFile(null);
+        setTemplatesOpen(false);
+    };
 
     return (
         <div className="flex-1 flex items-center justify-center p-8 relative overflow-hidden">
@@ -59,15 +107,47 @@ export function WelcomeScreen() {
                     </div>
                 </div>
 
-                <div className="pt-4">
+                <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-center items-center">
                     <Button
                         size="lg"
                         onClick={createNewConfig}
-                        className="h-12 px-8 gap-2 text-base rounded-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-lg shadow-primary/25 transition-all active:scale-95"
+                        className="h-12 px-8 gap-2 text-base rounded-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-lg shadow-primary/25 transition-all active:scale-95 w-full sm:w-auto"
                     >
                         <Package className="h-5 w-5" />
-                        Create Your First Package
+                        Create Empty Package
                     </Button>
+
+                    <Dialog open={catalogOpen} onOpenChange={setCatalogOpen}>
+                        <DialogTrigger asChild>
+                            <Button
+                                size="lg"
+                                variant="secondary"
+                                className="h-12 px-8 gap-2 text-base rounded-full shadow-lg transition-all active:scale-95 w-full sm:w-auto"
+                            >
+                                <Library className="h-5 w-5" />
+                                Browse Catalog
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl">
+                           <AppCatalog onSelect={handleCatalogSelect} />
+                        </DialogContent>
+                    </Dialog>
+
+                    <Dialog open={templatesOpen} onOpenChange={setTemplatesOpen}>
+                        <DialogTrigger asChild>
+                            <Button
+                                size="lg"
+                                variant="outline"
+                                className="h-12 px-8 gap-2 text-base rounded-full shadow-lg transition-all active:scale-95 w-full sm:w-auto bg-background/50 backdrop-blur-sm border-white/10 hover:bg-background/80"
+                            >
+                                <FileCode className="h-5 w-5" />
+                                Templates
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-xl">
+                           <TemplatesManager onSelect={handleTemplateSelect} />
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
         </div>

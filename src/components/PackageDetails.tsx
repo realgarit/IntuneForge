@@ -1,4 +1,5 @@
-import { Package, Info } from 'lucide-react';
+import { Package, Info, FileCode } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,20 +9,31 @@ import { usePackage } from '@/contexts/PackageContext';
 import type { PackageType } from '@/lib/package-config';
 
 export function PackageDetails() {
-    const { currentConfig, updateCurrentConfig } = usePackage();
+    const { currentConfig, updateCurrentConfig, saveAsTemplate } = usePackage();
 
     if (!currentConfig) return null;
 
+    const handleSaveTemplate = () => {
+        saveAsTemplate(currentConfig);
+        alert(`"${currentConfig.name}" has been saved as a template.`);
+    };
+
     return (
         <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Package className="h-5 w-5" />
-                    Package Details
-                </CardTitle>
-                <CardDescription>
-                    Basic information about your application
-                </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <div className="flex flex-col space-y-1.5">
+                    <CardTitle className="flex items-center gap-2">
+                        <Package className="h-5 w-5" />
+                        Package Details
+                    </CardTitle>
+                    <CardDescription>
+                        Basic information about your application
+                    </CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleSaveTemplate}>
+                    <FileCode className="h-4 w-4 mr-2" />
+                    Save as Template
+                </Button>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

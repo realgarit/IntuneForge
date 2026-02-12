@@ -1,4 +1,6 @@
-import { defineConfig, type ViteDevServer } from 'vite'
+/// <reference types="vitest" />
+import { defineConfig } from 'vitest/config'
+import { type ViteDevServer } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import https from 'https'
@@ -79,5 +81,10 @@ export default defineConfig({
   server: {
     port: 5173,
     cors: true,
-  }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./tests/setup.ts'],
+  },
 });
