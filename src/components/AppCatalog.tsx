@@ -23,6 +23,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from "@/components/ui/label";
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { APP_CATALOG } from '@/lib/app-catalog';
 import type { CatalogApp } from '@/lib/app-catalog';
 import { cn } from '@/lib/utils';
@@ -221,9 +222,14 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
             <div className="flex flex-col h-full overflow-hidden animate-in fade-in duration-300">
                 <div className="mb-8">
                     <div className="flex items-center gap-6">
-                        <Button variant="outline" size="icon" className="h-12 w-12 rounded-2xl shadow-sm" onClick={() => setView('list')}>
-                            <ArrowLeft className="h-6 w-6" />
-                        </Button>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="outline" size="icon" aria-label="Back to Catalog" className="h-12 w-12 rounded-2xl shadow-sm" onClick={() => setView('list')}>
+                                    <ArrowLeft className="h-6 w-6" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="rounded-lg font-bold">Back to Catalog</TooltipContent>
+                        </Tooltip>
                         <div className="flex items-center gap-5">
                             {selectedApp.iconUrl && !iconErrors.has(selectedApp.id) ? (
                                 <div className="h-16 w-16 bg-white rounded-2xl shadow-md border p-3 flex items-center justify-center">
@@ -467,28 +473,40 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                         </div>
 
                         <div className="flex items-center bg-muted/40 p-1.5 rounded-2xl border border-border/40 shadow-inner">
-                            <Button
-                                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-                                size="icon"
-                                onClick={() => setViewMode('grid')}
-                                className={cn(
-                                    "h-11 w-11 rounded-xl transition-all duration-300",
-                                    viewMode === 'grid' ? "bg-background shadow-md text-primary" : "text-muted-foreground"
-                                )}
-                            >
-                                <LayoutGrid className="h-5 w-5" />
-                            </Button>
-                            <Button
-                                variant={viewMode === 'table' ? 'secondary' : 'ghost'}
-                                size="icon"
-                                onClick={() => setViewMode('table')}
-                                className={cn(
-                                    "h-11 w-11 rounded-xl transition-all duration-300",
-                                    viewMode === 'table' ? "bg-background shadow-md text-primary" : "text-muted-foreground"
-                                )}
-                            >
-                                <List className="h-5 w-5" />
-                            </Button>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                                        size="icon"
+                                        onClick={() => setViewMode('grid')}
+                                        aria-label="Grid View"
+                                        className={cn(
+                                            "h-11 w-11 rounded-xl transition-all duration-300",
+                                            viewMode === 'grid' ? "bg-background shadow-md text-primary" : "text-muted-foreground"
+                                        )}
+                                    >
+                                        <LayoutGrid className="h-5 w-5" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent className="rounded-lg font-bold">Grid View</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant={viewMode === 'table' ? 'secondary' : 'ghost'}
+                                        size="icon"
+                                        onClick={() => setViewMode('table')}
+                                        aria-label="Table View"
+                                        className={cn(
+                                            "h-11 w-11 rounded-xl transition-all duration-300",
+                                            viewMode === 'table' ? "bg-background shadow-md text-primary" : "text-muted-foreground"
+                                        )}
+                                    >
+                                        <List className="h-5 w-5" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent className="rounded-lg font-bold">Table View</TooltipContent>
+                            </Tooltip>
                         </div>
 
                         {selectedAppIds.size > 0 && (
@@ -639,7 +657,29 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-muted/30 border-b border-border/40">
-                                            <th className="p-6 w-12"></th>
+                                            <th className="p-6 w-12">
+                                                <div className="relative group/check">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                                        checked={selectedAppIds.size > 0 && selectedAppIds.size === filteredApps.length}
+                                                        onChange={() => {
+                                                            if (selectedAppIds.size === filteredApps.length) setSelectedAppIds(new Set());
+                                                            else setSelectedAppIds(new Set(filteredApps.map(a => a.id)));
+                                                        }}
+                                                        aria-label="Select all applications"
+                                                    />
+                                                    <div className={cn(
+                                                        "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
+                                                        selectedAppIds.size > 0 && selectedAppIds.size === filteredApps.length
+                                                            ? "bg-primary border-primary shadow-lg shadow-primary/20"
+                                                            : "bg-background border-muted-foreground/20 group-hover/check:border-primary/50"
+                                                    )}>
+                                                        {selectedAppIds.size === filteredApps.length && selectedAppIds.size > 0 && <Check className="h-3.5 w-3.5 text-primary-foreground stroke-[4]" />}
+                                                        {selectedAppIds.size > 0 && selectedAppIds.size < filteredApps.length && <div className="h-1 w-3 bg-primary rounded-full" />}
+                                                    </div>
+                                                </div>
+                                            </th>
                                             <th className="p-6 font-black uppercase tracking-widest text-[10px] text-muted-foreground">Application</th>
                                             <th className="p-6 font-black uppercase tracking-widest text-[10px] text-muted-foreground">Publisher</th>
                                             <th className="p-6 font-black uppercase tracking-widest text-[10px] text-muted-foreground">Version</th>
@@ -657,7 +697,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                                 onClick={() => handleAppClick(app)}
                                             >
                                                 <td className="p-6" onClick={(e) => e.stopPropagation()}>
-                                                    <div className="relative">
+                                                    <div className="relative group/check">
                                                         <input
                                                             type="checkbox"
                                                             className="opacity-0 absolute inset-0 z-20 cursor-pointer"
@@ -671,12 +711,13 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                                                 }
                                                                 setSelectedAppIds(newSet);
                                                             }}
+                                                            aria-label={`Select ${app.name}`}
                                                         />
                                                         <div className={cn(
                                                             "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
                                                             selectedAppIds.has(app.id)
                                                                 ? "bg-primary border-primary shadow-lg shadow-primary/20"
-                                                                : "bg-background border-muted-foreground/20 group-hover:border-primary/50"
+                                                                : "bg-background border-muted-foreground/20 group-hover/check:border-primary/50"
                                                         )}>
                                                             {selectedAppIds.has(app.id) && <Check className="h-3.5 w-3.5 text-primary-foreground stroke-[4]" />}
                                                         </div>
