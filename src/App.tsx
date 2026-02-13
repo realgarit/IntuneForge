@@ -62,7 +62,7 @@ function AppContent() {
 
       <footer className="border-t py-4 text-center text-sm text-muted-foreground">
         <p>
-          IntuneForge v1.2.0 • Open Source Win32 Packager •{' '}
+          IntuneForge v1.3.0 • Open Source Win32 Packager •{' '}
           <a
             href="https://github.com/realgarit/intuneforge"
             target="_blank"
