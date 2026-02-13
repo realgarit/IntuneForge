@@ -201,7 +201,7 @@ export function Sidebar({
                 </div>
 
                 <div className="px-4 flex items-center justify-between">
-                    <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest">v1.2.0-stable</span>
+                    <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest">v1.3.0-stable</span>
                     <div className="flex gap-1">
                         <div className="h-1 w-1 rounded-full bg-muted-foreground/20" />
                         <div className="h-1 w-1 rounded-full bg-muted-foreground/20" />

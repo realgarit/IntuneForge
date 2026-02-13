@@ -3,7 +3,7 @@
 Create and deploy Win32 apps to Microsoft Intune directly from your browser. No installation needed—just visit the site and start packaging.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/realgarit/intuneforge)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/realgarit/intuneforge)
 
 ## Features
 
