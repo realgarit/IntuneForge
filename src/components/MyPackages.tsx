@@ -114,28 +114,40 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                 </div>
 
                 <div className="flex items-center bg-muted/40 p-1.5 rounded-2xl border border-border/40 shadow-inner">
-                    <Button
-                        variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-                        size="icon"
-                        onClick={() => setViewMode('grid')}
-                        className={cn(
-                            "h-11 w-11 rounded-xl transition-all duration-300",
-                            viewMode === 'grid' ? "bg-background shadow-md text-primary" : "text-muted-foreground"
-                        )}
-                    >
-                        <LayoutGrid className="h-5 w-5" />
-                    </Button>
-                    <Button
-                        variant={viewMode === 'table' ? 'secondary' : 'ghost'}
-                        size="icon"
-                        onClick={() => setViewMode('table')}
-                        className={cn(
-                            "h-11 w-11 rounded-xl transition-all duration-300",
-                            viewMode === 'table' ? "bg-background shadow-md text-primary" : "text-muted-foreground"
-                        )}
-                    >
-                        <List className="h-5 w-5" />
-                    </Button>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                                size="icon"
+                                onClick={() => setViewMode('grid')}
+                                aria-label="Grid View"
+                                className={cn(
+                                    "h-11 w-11 rounded-xl transition-all duration-300",
+                                    viewMode === 'grid' ? "bg-background shadow-md text-primary" : "text-muted-foreground"
+                                )}
+                            >
+                                <LayoutGrid className="h-5 w-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent className="rounded-lg font-bold">Grid View</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant={viewMode === 'table' ? 'secondary' : 'ghost'}
+                                size="icon"
+                                onClick={() => setViewMode('table')}
+                                aria-label="Table View"
+                                className={cn(
+                                    "h-11 w-11 rounded-xl transition-all duration-300",
+                                    viewMode === 'table' ? "bg-background shadow-md text-primary" : "text-muted-foreground"
+                                )}
+                            >
+                                <List className="h-5 w-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent className="rounded-lg font-bold">Table View</TooltipContent>
+                    </Tooltip>
                 </div>
             </div>
 
@@ -193,6 +205,7 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
+                                                    aria-label="Export JSON"
                                                     className="h-9 w-9 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                                                     onClick={() => handleExport(config)}
                                                 >
@@ -206,6 +219,7 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
+                                                    aria-label="Delete Package"
                                                     className="h-9 w-9 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                                                     onClick={() => {
                                                         if (confirm('Delete this package configuration?')) {
@@ -327,7 +341,7 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                                         <div className="flex justify-end gap-2">
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-primary/10 hover:text-primary transition-all" onClick={() => { setCurrentConfig(config); setSelectedFile(null); onEdit(); }}>
+                                                    <Button variant="ghost" size="icon" aria-label="Edit Package" className="h-10 w-10 rounded-xl hover:bg-primary/10 hover:text-primary transition-all" onClick={() => { setCurrentConfig(config); setSelectedFile(null); onEdit(); }}>
                                                         <Edit3 className="h-4 w-4" />
                                                     </Button>
                                                 </TooltipTrigger>
@@ -336,7 +350,7 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
 
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-muted transition-all" onClick={() => handleExport(config)}>
+                                                    <Button variant="ghost" size="icon" aria-label="Export JSON" className="h-10 w-10 rounded-xl hover:bg-muted transition-all" onClick={() => handleExport(config)}>
                                                         <Download className="h-4 w-4" />
                                                     </Button>
                                                 </TooltipTrigger>
@@ -347,7 +361,7 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
 
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-all" onClick={() => { if(confirm('Delete this package?')) deleteConfig(config.id); }}>
+                                                    <Button variant="ghost" size="icon" aria-label="Delete Package" className="h-10 w-10 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-all" onClick={() => { if(confirm('Delete this package?')) deleteConfig(config.id); }}>
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
                                                 </TooltipTrigger>
@@ -394,14 +408,20 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                                 Delete Selected
                             </Button>
                             <div className="w-px h-8 bg-border/40 mx-2" />
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-12 w-12 rounded-2xl hover:bg-muted transition-all"
-                                onClick={() => setSelectedIds(new Set())}
-                            >
-                                <X className="h-5 w-5" />
-                            </Button>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        aria-label="Clear Selection"
+                                        className="h-12 w-12 rounded-2xl hover:bg-muted transition-all"
+                                        onClick={() => setSelectedIds(new Set())}
+                                    >
+                                        <X className="h-5 w-5" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent className="rounded-lg font-bold">Clear Selection</TooltipContent>
+                            </Tooltip>
                         </div>
                     </div>
                 </div>

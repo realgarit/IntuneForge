@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePackage } from '@/contexts/PackageContext';
 import { formatFileSize } from '@/lib/utils';
@@ -265,14 +266,20 @@ export function FileUploader() {
                                             <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
                                         </div>
                                     </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => removeAdditionalFile(index)}
-                                        className="text-muted-foreground hover:text-destructive shrink-0"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => removeAdditionalFile(index)}
+                                                aria-label="Remove file"
+                                                className="text-muted-foreground hover:text-destructive shrink-0"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="rounded-lg font-bold">Remove File</TooltipContent>
+                                    </Tooltip>
                                 </div>
                             ))}
                         </div>

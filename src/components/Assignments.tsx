@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Users, Plus, Trash2, Search, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -85,14 +86,20 @@ export function Assignments() {
                             <div key={index} className="p-4 border rounded-lg bg-muted/30 space-y-4">
                                 <div className="flex items-center justify-between">
                                     <span className="font-medium text-sm">Assignment #{index + 1}</span>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => removeAssignment(index)}
-                                        className="h-8 w-8 text-destructive hover:text-destructive"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => removeAssignment(index)}
+                                                aria-label="Remove assignment"
+                                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="rounded-lg font-bold">Remove Assignment</TooltipContent>
+                                    </Tooltip>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

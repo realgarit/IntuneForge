@@ -5,17 +5,20 @@ import { AppCatalog } from '../src/components/AppCatalog';
 import { APP_CATALOG } from '../src/lib/app-catalog';
 import { Dialog, DialogContent } from '../src/components/ui/dialog';
 import { PackageProvider } from '../src/contexts/PackageContext';
+import { TooltipProvider } from '../src/components/ui/tooltip';
 
 describe('AppCatalog', () => {
     const renderInDialog = (ui: React.ReactNode) => {
         return render(
-            <PackageProvider>
-                <Dialog open={true}>
-                    <DialogContent>
-                        {ui}
-                    </DialogContent>
-                </Dialog>
-            </PackageProvider>
+            <TooltipProvider>
+                <PackageProvider>
+                    <Dialog open={true}>
+                        <DialogContent>
+                            {ui}
+                        </DialogContent>
+                    </Dialog>
+                </PackageProvider>
+            </TooltipProvider>
         );
     };
 
