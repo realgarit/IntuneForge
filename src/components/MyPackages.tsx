@@ -5,7 +5,7 @@ import { usePackage } from '@/contexts/PackageContext';
 import { exportConfig, importConfig } from '@/lib/package-config';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import type { PackageConfig } from '@/lib/package-config';
 
@@ -27,6 +27,7 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
     const [search, setSearch] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
     const filteredConfigs = configs.filter(c =>
         c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -67,6 +68,12 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
     const handleBulkExport = () => {
         configs.filter(c => selectedIds.has(c.id)).forEach(c => exportConfig(c));
     };
+
+    useEffect(() => {
+        if (headerCheckboxRef.current) {
+            headerCheckboxRef.current.indeterminate = selectedIds.size > 0 && selectedIds.size < filteredConfigs.length;
+        }
+    }, [selectedIds, filteredConfigs.length]);
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative pb-24">
@@ -194,7 +201,7 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                                                         "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
                                                         selectedIds.has(config.id)
                                                             ? "bg-primary border-primary shadow-lg shadow-primary/20 scale-110"
-                                                            : "bg-background border-muted-foreground/20 group-hover/check:border-primary/50"
+                                                            : "bg-background border-muted-foreground/20 group-hover:border-primary/50"
                                                     )}>
                                                         {selectedIds.has(config.id) && <Check className="h-3.5 w-3.5 text-primary-foreground stroke-[4]" />}
                                                     </div>
@@ -267,6 +274,7 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                                         <div className="relative group/check">
                                             <input
                                                 type="checkbox"
+                                                ref={headerCheckboxRef}
                                                 className="opacity-0 absolute inset-0 z-20 cursor-pointer h-6 w-6"
                                                 checked={selectedIds.size > 0 && selectedIds.size === filteredConfigs.length}
                                                 onChange={() => {
@@ -279,7 +287,7 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                                                 "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
                                                 selectedIds.size > 0 && selectedIds.size === filteredConfigs.length
                                                     ? "bg-primary border-primary shadow-lg shadow-primary/20"
-                                                    : "bg-background border-muted-foreground/20 group-hover/check:border-primary/50"
+                                                    : "bg-background border-muted-foreground/20 group-hover:border-primary/50"
                                             )}>
                                                 {selectedIds.size === filteredConfigs.length && selectedIds.size > 0 && <Check className="h-3.5 w-3.5 text-primary-foreground stroke-[4]" />}
                                                 {selectedIds.size > 0 && selectedIds.size < filteredConfigs.length && <div className="h-1 w-3 bg-primary rounded-full" />}
@@ -325,7 +333,7 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                                                     "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
                                                     selectedIds.has(config.id)
                                                         ? "bg-primary border-primary shadow-lg shadow-primary/20"
-                                                        : "bg-background border-muted-foreground/20 group-hover/check:border-primary/50"
+                                                        : "bg-background border-muted-foreground/20 group-hover:border-primary/50"
                                                 )}>
                                                     {selectedIds.has(config.id) && <Check className="h-3.5 w-3.5 text-primary-foreground stroke-[4]" />}
                                                 </div>
