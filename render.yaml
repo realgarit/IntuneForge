@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: intuneforge
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+
+previews:
+  generation: automatic
