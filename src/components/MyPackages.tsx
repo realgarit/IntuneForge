@@ -5,7 +5,7 @@ import { usePackage } from '@/contexts/PackageContext';
 import { exportConfig, importConfig } from '@/lib/package-config';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchShortcut } from '@/hooks/useSearchShortcut';
 import { cn } from '@/lib/utils';
 import type { PackageConfig } from '@/lib/package-config';
