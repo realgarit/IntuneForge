@@ -6,6 +6,7 @@ import { exportConfig, importConfig } from '@/lib/package-config';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
+import { useSearchShortcut } from '@/hooks/useSearchShortcut';
 import { cn } from '@/lib/utils';
 import type { PackageConfig } from '@/lib/package-config';
 
@@ -25,6 +26,7 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
     } = usePackage();
 
     const [search, setSearch] = useState('');
+    const searchInputRef = useSearchShortcut();
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -106,11 +108,27 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                 <div className="relative group w-full md:max-w-md">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input
+                        ref={searchInputRef}
                         placeholder="Search your packages, vendors..."
                         className="pl-12 h-14 bg-muted/40 border-border/40 focus:bg-background transition-all rounded-2xl text-base shadow-inner focus:ring-2 focus:ring-primary/20"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
+                    {search ? (
+                        <button
+                            onClick={() => setSearch('')}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all active:scale-90"
+                            aria-label="Clear search"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                    ) : (
+                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none hidden md:flex items-center gap-1">
+                            <kbd className="h-6 px-2 rounded-lg border border-border/60 bg-background/50 text-[10px] font-black text-muted-foreground/60 flex items-center justify-center shadow-sm">
+                                /
+                            </kbd>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex items-center bg-muted/40 p-1.5 rounded-2xl border border-border/40 shadow-inner">

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchShortcut } from '@/hooks/useSearchShortcut';
 import {
     Search,
     Loader2,
@@ -18,7 +19,8 @@ import {
     Package,
     PlusCircle,
     Info,
-    FileText
+    FileText,
+    X
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -52,6 +54,7 @@ const getCategoryIcon = (category: string) => {
 export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
     const { addConfigs } = usePackage();
     const [search, setSearch] = useState('');
+    const searchInputRef = useSearchShortcut();
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [downloading, setDownloading] = useState<string | null>(null);
     const [bulkDownloading, setBulkDownloading] = useState(false);
@@ -465,11 +468,27 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                         <div className="relative flex-1 group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-all duration-300" />
                             <Input
+                                ref={searchInputRef}
                                 placeholder="Search apps, vendors, categories..."
                                 className="pl-12 h-14 bg-muted/40 border-border/40 focus:bg-background transition-all duration-300 rounded-2xl ring-offset-background text-base shadow-inner focus:ring-2 focus:ring-primary/20"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
+                            {search ? (
+                                <button
+                                    onClick={() => setSearch('')}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all active:scale-90"
+                                    aria-label="Clear search"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+                            ) : (
+                                <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none hidden md:flex items-center gap-1">
+                                    <kbd className="h-6 px-2 rounded-lg border border-border/60 bg-background/50 text-[10px] font-black text-muted-foreground/60 flex items-center justify-center shadow-sm">
+                                        /
+                                    </kbd>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex items-center bg-muted/40 p-1.5 rounded-2xl border border-border/40 shadow-inner">
