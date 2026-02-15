@@ -34,15 +34,15 @@ export function SettingsDialog({ open, onOpenChange, trigger }: SettingsDialogPr
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2rem] border-border/40 shadow-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden rounded-[2rem] border-border/40 shadow-2xl">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-black">Settings</DialogTitle>
                     <DialogDescription className="font-medium">
                         Configure application settings and authentication.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="py-4 h-[60vh] overflow-hidden flex flex-col">
-                    <Tabs defaultValue="auth" className="flex-1 flex flex-col">
+                <div className="py-4 flex-1 min-h-0 flex flex-col">
+                    <Tabs defaultValue="auth" className="flex-1 flex flex-col min-h-0">
                         <TabsList className="grid w-full grid-cols-5 bg-muted/50 rounded-2xl mb-6 p-1 h-14">
                             <TabsTrigger value="auth" className="gap-2 text-[10px] font-black uppercase tracking-widest px-1 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md">
                                 <Shield className="h-3.5 w-3.5" />
