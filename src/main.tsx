@@ -11,3 +11,4 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+\nconsole.log('Deploy test: ' + new Date().toISOString());
