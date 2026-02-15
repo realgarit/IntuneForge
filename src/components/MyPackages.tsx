@@ -29,6 +29,7 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
     const searchInputRef = useSearchShortcut();
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
     const filteredConfigs = configs.filter(c =>
         c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -59,14 +60,6 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
         exportConfig(config);
     };
 
-    const toggleSelection = (id: string, event?: React.MouseEvent) => {
-        if (event) event.stopPropagation();
-        const next = new Set(selectedIds);
-        if (next.has(id)) next.delete(id);
-        else next.add(id);
-        setSelectedIds(next);
-    };
-
     const handleBulkDelete = () => {
         if (confirm(`Delete ${selectedIds.size} packages?`)) {
             deleteConfigs(Array.from(selectedIds));
@@ -77,6 +70,12 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
     const handleBulkExport = () => {
         configs.filter(c => selectedIds.has(c.id)).forEach(c => exportConfig(c));
     };
+
+    useEffect(() => {
+        if (headerCheckboxRef.current) {
+            headerCheckboxRef.current.indeterminate = selectedIds.size > 0 && selectedIds.size < filteredConfigs.length;
+        }
+    }, [selectedIds, filteredConfigs.length]);
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative pb-24">
@@ -203,7 +202,19 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                             <CardHeader className="pb-4 relative">
                                 <div className="flex justify-between items-start">
                                             <div className="flex gap-4 items-start">
-                                                <div className="relative" onClick={(e) => toggleSelection(config.id, e)}>
+                                                <div className="relative group/check" onClick={(e) => e.stopPropagation()}>
+                                                    <input
+                                                        type="checkbox"
+                                                        className="opacity-0 absolute inset-0 z-20 cursor-pointer h-6 w-6"
+                                                        checked={selectedIds.has(config.id)}
+                                                        onChange={() => {
+                                                            const next = new Set(selectedIds);
+                                                            if (next.has(config.id)) next.delete(config.id);
+                                                            else next.add(config.id);
+                                                            setSelectedIds(next);
+                                                        }}
+                                                        aria-label={`Select ${config.displayName || config.name}`}
+                                                    />
                                                     <div className={cn(
                                                         "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
                                                         selectedIds.has(config.id)
@@ -278,17 +289,25 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                         <thead>
                             <tr className="bg-muted/30 border-b border-border/40">
                                     <th className="p-6 w-12">
-                                        <div className="relative" onClick={() => {
-                                            if (selectedIds.size === filteredConfigs.length) setSelectedIds(new Set());
-                                            else setSelectedIds(new Set(filteredConfigs.map(c => c.id)));
-                                        }}>
+                                        <div className="relative group/check">
+                                            <input
+                                                type="checkbox"
+                                                ref={headerCheckboxRef}
+                                                className="opacity-0 absolute inset-0 z-20 cursor-pointer h-6 w-6"
+                                                checked={selectedIds.size > 0 && selectedIds.size === filteredConfigs.length}
+                                                onChange={() => {
+                                                    if (selectedIds.size === filteredConfigs.length) setSelectedIds(new Set());
+                                                    else setSelectedIds(new Set(filteredConfigs.map(c => c.id)));
+                                                }}
+                                                aria-label="Select all packages"
+                                            />
                                             <div className={cn(
-                                                "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300 cursor-pointer",
+                                                "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
                                                 selectedIds.size > 0 && selectedIds.size === filteredConfigs.length
                                                     ? "bg-primary border-primary shadow-lg shadow-primary/20"
-                                                    : "bg-background border-muted-foreground/20 hover:border-primary/50"
+                                                    : "bg-background border-muted-foreground/20 group-hover:border-primary/50"
                                             )}>
-                                                {selectedIds.size === filteredConfigs.length && <Check className="h-3.5 w-3.5 text-primary-foreground stroke-[4]" />}
+                                                {selectedIds.size === filteredConfigs.length && selectedIds.size > 0 && <Check className="h-3.5 w-3.5 text-primary-foreground stroke-[4]" />}
                                                 {selectedIds.size > 0 && selectedIds.size < filteredConfigs.length && <div className="h-1 w-3 bg-primary rounded-full" />}
                                             </div>
                                         </div>
@@ -314,14 +333,28 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                                         onEdit();
                                     }}
                                 >
-                                        <td className="p-6" onClick={(e) => toggleSelection(config.id, e)}>
-                                            <div className={cn(
-                                                "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
-                                                selectedIds.has(config.id)
-                                                    ? "bg-primary border-primary shadow-lg shadow-primary/20"
-                                                    : "bg-background border-muted-foreground/20 group-hover:border-primary/50"
-                                            )}>
-                                                {selectedIds.has(config.id) && <Check className="h-3.5 w-3.5 text-primary-foreground stroke-[4]" />}
+                                        <td className="p-6" onClick={(e) => e.stopPropagation()}>
+                                            <div className="relative group/check">
+                                                <input
+                                                    type="checkbox"
+                                                    className="opacity-0 absolute inset-0 z-20 cursor-pointer h-6 w-6"
+                                                    checked={selectedIds.has(config.id)}
+                                                    onChange={() => {
+                                                        const next = new Set(selectedIds);
+                                                        if (next.has(config.id)) next.delete(config.id);
+                                                        else next.add(config.id);
+                                                        setSelectedIds(next);
+                                                    }}
+                                                    aria-label={`Select ${config.displayName || config.name}`}
+                                                />
+                                                <div className={cn(
+                                                    "h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
+                                                    selectedIds.has(config.id)
+                                                        ? "bg-primary border-primary shadow-lg shadow-primary/20"
+                                                        : "bg-background border-muted-foreground/20 group-hover:border-primary/50"
+                                                )}>
+                                                    {selectedIds.has(config.id) && <Check className="h-3.5 w-3.5 text-primary-foreground stroke-[4]" />}
+                                                </div>
                                             </div>
                                         </td>
                                     <td className="p-6">
