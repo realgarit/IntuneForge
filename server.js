@@ -101,3 +101,4 @@ app.listen(port, '0.0.0.0', () => {
     indexPath: ${indexPath}
     indexExists: ${fs.existsSync(indexPath)}`);
 });
+\nconsole.log('Manual Preview Trigger: ' + new Date().toISOString());
