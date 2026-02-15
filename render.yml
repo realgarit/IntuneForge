@@ -1,0 +1,13 @@
+previewsEnabled: true
+services:
+  - type: web
+    name: intuneforge
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
