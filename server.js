@@ -30,19 +30,10 @@ app.use((req, res, next) => {
 });
 
 // Proxy endpoint logic
-app.all('/api/proxy', async (req, res) => {
+app.all('/api/proxy', express.raw({ type: '*/*', limit: '50mb' }), async (req, res) => {
     const targetUrl = req.query.url;
     if (!targetUrl) return res.status(400).send('Missing "url"');
 
-    // Only parse body for POST/PUT
-    if (req.method === 'POST' || req.method === 'PUT') {
-        return express.raw({ type: '*/*', limit: '50mb' })(req, res, () => handleProxy(req, res, targetUrl));
-    }
-    
-    return handleProxy(req, res, targetUrl);
-});
-
-async function handleProxy(req, res, targetUrl) {
     try {
         const headers = new Headers();
         
@@ -59,16 +50,20 @@ async function handleProxy(req, res, targetUrl) {
             headers.set('user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
         }
 
-        headers.set('accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7');
-        headers.set('accept-language', 'en-US,en;q=0.9');
-        headers.set('sec-ch-ua', '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"');
-        headers.set('sec-ch-ua-mobile', '?0');
-        headers.set('sec-ch-ua-platform', '"Windows"');
-        headers.set('sec-fetch-dest', 'document');
-        headers.set('sec-fetch-mode', 'navigate');
-        headers.set('sec-fetch-site', 'none');
-        headers.set('sec-fetch-user', '?1');
-        headers.set('upgrade-insecure-requests', '1');
+        // Only add browser-like headers for GET requests (downloads)
+        // These can interfere with Azure Storage PUT requests
+        if (req.method === 'GET') {
+            headers.set('accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7');
+            headers.set('accept-language', 'en-US,en;q=0.9');
+            headers.set('sec-ch-ua', '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"');
+            headers.set('sec-ch-ua-mobile', '?0');
+            headers.set('sec-ch-ua-platform', '"Windows"');
+            headers.set('sec-fetch-dest', 'document');
+            headers.set('sec-fetch-mode', 'navigate');
+            headers.set('sec-fetch-site', 'none');
+            headers.set('sec-fetch-user', '?1');
+            headers.set('upgrade-insecure-requests', '1');
+        }
 
         // Set Referer to the target domain to bypass some basic anti-hotlinking
         try {
@@ -80,11 +75,21 @@ async function handleProxy(req, res, targetUrl) {
 
         let body = null;
         if (req.method === 'PUT' || req.method === 'POST') {
+            // Check if express.raw() populated req.body
             if (req.body && (Buffer.isBuffer(req.body) || typeof req.body === 'string')) {
                 body = req.body;
                 headers.set('content-length', body.length.toString());
+            } else {
+                // If body wasn't parsed (e.g. no content-type), we can try to pass req directly as a stream
+                // or use the content-length from headers if it exists
+                body = req; 
+                if (req.headers['content-length']) {
+                    headers.set('content-length', req.headers['content-length']);
+                }
             }
             
+            // Only add x-ms-blob-type for standard PUT requests if not already present
+            // Azure rejects this header on 'comp=block' or 'comp=blocklist' operations
             if (!headers.has('x-ms-blob-type') && !targetUrl.includes('comp=')) {
                 headers.set('x-ms-blob-type', 'BlockBlob');
             }
@@ -94,7 +99,7 @@ async function handleProxy(req, res, targetUrl) {
             method: req.method,
             headers: headers,
             body: body,
-            duplex: 'half',
+            duplex: 'half', // Required when body is a stream
             redirect: 'follow',
         });
 
@@ -123,7 +128,8 @@ async function handleProxy(req, res, targetUrl) {
             res.status(502).send(`Proxy Error: ${error.message}`);
         }
     }
-}
+});
+
 
 // Serve static files
 if (fs.existsSync(distPath)) {
