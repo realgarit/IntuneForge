@@ -141,7 +141,7 @@ export const APP_CATALOG: CatalogApp[] = [
         description: 'VLC is a free and open source cross-platform multimedia player.',
         version: '3.0.21',
         category: 'Media',
-        downloadUrl: 'https://get.videolan.org/vlc/3.0.21/win64/vlc-3.0.21-win64.exe',
+        downloadUrl: 'https://get.videolan.org/vlc/3.0.21/win64/vlc-3.0.21-win64.exe?direct',
         filename: 'vlc-3.0.21-win64.exe',
         iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/VLC_Icon.svg/256px-VLC_Icon.svg.png',
         installCommand: 'vlc-3.0.21-win64.exe /L=1033 /S',
