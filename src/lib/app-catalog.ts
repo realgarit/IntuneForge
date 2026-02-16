@@ -146,7 +146,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Media',
         downloadUrl: 'https://get.videolan.org/vlc/3.0.21/win64/vlc-3.0.21-win64.exe?direct',
         filename: 'vlc-3.0.21-win64.exe',
-        iconUrl: 'https://images.videolan.org/images/icons/vlc-48x48.png',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/VLC_Icon.svg/120px-VLC_Icon.svg.png',
         installCommand: 'vlc-3.0.21-win64.exe /L=1033 /S',
         uninstallCommand: '%ProgramFiles%\\VideoLAN\\VLC\\uninstall.exe /S',
         detectionRules: [{
@@ -259,7 +259,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Utilities',
         downloadUrl: 'https://github.com/microsoft/PowerToys/releases/download/v0.97.2/PowerToysSetup-0.97.2-x64.exe',
         filename: 'PowerToysSetup.exe',
-        iconUrl: 'https://learn.microsoft.com/en-us/windows/images/powertoys.ico',
+        iconUrl: 'https://docs.microsoft.com/en-us/windows/images/powertoys.png',
         installCommand: 'PowerToysSetup.exe /install /quiet /norestart',
         uninstallCommand: '%ProgramFiles%\\PowerToys\\uninstall.exe /quiet',
         detectionRules: [{
@@ -279,7 +279,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2300620320/AcroRdrDC2300620320_en_US.exe',
         filename: 'AcroRdrDC.exe',
-        iconUrl: 'https://www.adobe.com/content/dam/cc/icons/acrobat_reader_appicon_256.svg',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Adobe_Acrobat_reader_logo_%282020%29.svg/120px-Adobe_Acrobat_reader_logo_%282020%29.svg.png',
         installCommand: 'AcroRdrDC.exe /sPB /rs /msi EULA_ACCEPT=YES',
         uninstallCommand: 'msiexec /x {AC76BA86-1033-FF00-7760-BC15014EA700} /qn',
         detectionRules: [{
@@ -507,7 +507,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2400120604/AcroRdrDC2400120604_en_US.exe',
         filename: 'AcroRdrDC2400120604_en_US.exe',
-        iconUrl: 'https://www.adobe.com/content/dam/cc/icons/acrobat_appicon_256.svg',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Adobe_Acrobat_Pro_icon_%282020%29.svg/120px-Adobe_Acrobat_Pro_icon_%282020%29.svg.png',
         installCommand: 'AcroRdrDC2400120604_en_US.exe /sAll /rs /msi EULA_ACCEPT=YES',
         uninstallCommand: 'msiexec /x {AC76BA86-1033-FF00-7760-BC15014EA700} /qn',
         detectionRules: [{
@@ -567,7 +567,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://www.pdf24.org/products/pdf-creator/download/pdf24-creator-x64.msi',
         filename: 'pdf24-creator-x64.msi',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/PDF24_Creator_application_logo_256x256.png',
+        iconUrl: 'https://www.pdf24.org/images/pdf24-creator-icon.png',
         installCommand: 'msiexec /i "pdf24-creator-x64.msi" /qn',
         uninstallCommand: 'msiexec /x "pdf24-creator-x64.msi" /qn',
         detectionRules: [{
