@@ -519,26 +519,6 @@ export const APP_CATALOG: CatalogApp[] = [
         }]
     },
     {
-        id: 'adobe-creative-cloud',
-        name: 'Adobe Creative Cloud Desktop',
-        publisher: 'Adobe Inc.',
-        description: 'The central hub for managing Adobe apps and services.',
-        version: 'Latest',
-        category: 'Productivity',
-        downloadUrl: 'https://ccmdls.adobe.com/AdobeProducts/KCCC/CCD/5/Win64/Creative_Cloud_Set-Up.exe',
-        filename: 'Creative_Cloud_Set-Up.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/Adobe_Creative_Cloud_rainbow_icon.svg',
-        installCommand: 'Creative_Cloud_Set-Up.exe --silent',
-        uninstallCommand: 'Creative_Cloud_Uninstaller.exe -u',
-        detectionRules: [{
-            type: 'file',
-            path: '%ProgramFiles%\\Adobe\\Adobe Creative Cloud\\ACC',
-            fileOrFolderName: 'Creative Cloud.exe',
-            detectionType: 'exists',
-            check32BitOn64System: false
-        }]
-    },
-    {
         id: 'anydesk',
         name: 'AnyDesk',
         publisher: 'AnyDesk Software GmbH',
@@ -634,26 +614,6 @@ export const APP_CATALOG: CatalogApp[] = [
             type: 'file',
             path: '%AppData%\\Telegram Desktop',
             fileOrFolderName: 'Telegram.exe',
-            detectionType: 'exists',
-            check32BitOn64System: false
-        }]
-    },
-    {
-        id: 'whatsapp-desktop',
-        name: 'WhatsApp',
-        publisher: 'WhatsApp',
-        description: 'Simple, reliable, and private messaging and calling.',
-        version: 'Latest',
-        category: 'Communication',
-        downloadUrl: 'https://web.whatsapp.com/desktop/windows/release/x64/WhatsAppSetup.exe',
-        filename: 'WhatsAppSetup.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg',
-        installCommand: 'WhatsAppSetup.exe /S',
-        uninstallCommand: '%LocalAppData%\\WhatsApp\\Update.exe --uninstall',
-        detectionRules: [{
-            type: 'file',
-            path: '%LocalAppData%\\WhatsApp',
-            fileOrFolderName: 'WhatsApp.exe',
             detectionType: 'exists',
             check32BitOn64System: false
         }]

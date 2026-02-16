@@ -47,14 +47,16 @@ app.all('/api/proxy', express.raw({ type: '*/*', limit: '50mb' }), async (req, r
 
         // Add a standard User-Agent if not present
         if (!headers.has('user-agent')) {
-            headers.set('user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+            headers.set('user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
         }
 
         // Only add browser-like headers for GET requests (downloads)
         // These can interfere with Azure Storage PUT requests
         if (req.method === 'GET') {
-            headers.set('accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7');
+            headers.set('accept', '*/*');
             headers.set('accept-language', 'en-US,en;q=0.9');
+            headers.set('cache-control', 'no-cache');
+            headers.set('pragma', 'no-cache');
             headers.set('sec-ch-ua', '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"');
             headers.set('sec-ch-ua-mobile', '?0');
             headers.set('sec-ch-ua-platform', '"Windows"');
