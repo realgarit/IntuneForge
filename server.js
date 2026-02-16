@@ -61,8 +61,9 @@ app.all('/api/proxy', express.raw({ type: '*/*', limit: '50mb' }), async (req, r
                 console.log(`[Proxy] Body not parsed, using stream. Content-Length header: ${req.headers['content-length']}`);
             }
             
-            // Ensure x-ms-blob-type is set for Azure Storage
-            if (!headers.has('x-ms-blob-type')) {
+            // Only add x-ms-blob-type for standard PUT requests if not already present
+            // Azure rejects this header on 'comp=block' or 'comp=blocklist' operations
+            if (!headers.has('x-ms-blob-type') && !targetUrl.includes('comp=')) {
                 headers.set('x-ms-blob-type', 'BlockBlob');
             }
         }
