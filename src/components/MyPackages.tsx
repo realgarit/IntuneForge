@@ -44,6 +44,7 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
         setDownloadingId(config.id);
         try {
             const file = await downloadFile(config.sourceUrl, config.setupFileName);
+            console.log(`[MyPackages] Re-downloaded ${config.name}: ${file.size} bytes`);
             setCurrentConfig(config);
             setSelectedFile(file);
             onEdit();

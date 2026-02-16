@@ -133,6 +133,8 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
 
             const blob = await response.blob();
             const file = new File([blob], app.filename, { type: blob.type });
+            
+            console.log(`[Catalog] Downloaded ${app.name}: ${file.size} bytes`);
 
             // Apply customizations to install command
             let finalInstallCommand = app.installCommand;
