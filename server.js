@@ -59,6 +59,17 @@ async function handleProxy(req, res, targetUrl) {
             headers.set('user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
         }
 
+        headers.set('accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7');
+        headers.set('accept-language', 'en-US,en;q=0.9');
+        headers.set('sec-ch-ua', '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"');
+        headers.set('sec-ch-ua-mobile', '?0');
+        headers.set('sec-ch-ua-platform', '"Windows"');
+        headers.set('sec-fetch-dest', 'document');
+        headers.set('sec-fetch-mode', 'navigate');
+        headers.set('sec-fetch-site', 'none');
+        headers.set('sec-fetch-user', '?1');
+        headers.set('upgrade-insecure-requests', '1');
+
         // Set Referer to the target domain to bypass some basic anti-hotlinking
         try {
             const url = new URL(targetUrl);
