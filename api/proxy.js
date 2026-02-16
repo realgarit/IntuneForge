@@ -23,12 +23,10 @@ export default async function handler(req) {
     }
 
     try {
-        // Forward the request to Azure
-        // We strictly filter headers to avoid sending host/connection headers from Vercel
         const headers = new Headers();
-        
-        // Forward allowed headers and all x-ms- headers
-        const allowedHeaders = ['content-type', 'content-length', 'if-match', 'if-none-match', 'if-modified-since', 'if-unmodified-since'];
+        // Forward essential headers and all x-ms- headers
+        // We explicitly skip content-length here and set it later
+        const allowedHeaders = ['content-type', 'accept', 'if-match', 'if-none-match', 'if-modified-since', 'if-unmodified-since'];
 
         for (const [key, value] of req.headers.entries()) {
             const lowerKey = key.toLowerCase();
@@ -37,22 +35,34 @@ export default async function handler(req) {
             }
         }
 
-        // For PUT/POST, we might need to read the body as arrayBuffer 
-        // to ensure Content-Length is correctly handled by the outgoing fetch
-        let body = req.body;
+        let body = null;
         if (req.method === 'PUT' || req.method === 'POST') {
-            const contentType = req.headers.get('content-type');
-            // Only use arrayBuffer if not too large (Edge limit is usually 4MB-10MB for some operations, 
-            // but here we are just forwarding. However, reading it all helps with Content-Length).
-            // Our blocks are 4MB, so this is safe.
-            body = await req.arrayBuffer();
+            // Priority 1: Check for 'len' query parameter (our custom fallback)
+            const queryLen = url.searchParams.get('len');
             
-            // If we have the body as ArrayBuffer, fetch will set Content-Length automatically.
-            // We can also set it explicitly if it was in the original request.
-            if (req.headers.has('content-length')) {
-                headers.set('content-length', req.headers.get('content-length'));
+            // Priority 2: Use existing content-length header
+            const incomingContentLength = req.headers.get('content-length');
+
+            if (queryLen) {
+                headers.set('content-length', queryLen);
+                body = req.body; // Try streaming first if we have the length
+            } else if (incomingContentLength && incomingContentLength !== '0') {
+                headers.set('content-length', incomingContentLength);
+                body = req.body;
             } else {
-                headers.set('content-length', body.byteLength.toString());
+                // Priority 3: Consume body to determine length
+                const buffer = await req.arrayBuffer();
+                if (buffer.byteLength > 0) {
+                    body = buffer;
+                    headers.set('content-length', buffer.byteLength.toString());
+                } else {
+                    headers.set('content-length', '0');
+                }
+            }
+
+            // Always ensure x-ms-blob-type for PUT requests
+            if (!headers.has('x-ms-blob-type')) {
+                headers.set('x-ms-blob-type', 'BlockBlob');
             }
         }
 
@@ -60,6 +70,7 @@ export default async function handler(req) {
             method: req.method,
             headers: headers,
             body: body,
+            redirect: 'follow', // Azure sometimes redirects
         });
 
         // Create a new response with CORS headers

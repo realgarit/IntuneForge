@@ -226,7 +226,7 @@ export async function uploadToAzureStorage(
         // Wait, the Vercel proxy expects: /api/proxy?url=FULL_TARGET_URL
         // The target URL for a block needs to be: BASE_SAS_URL + "&comp=block&blockid=..."
 
-        const blockParams = `&comp=block&blockid=${encodeURIComponent(blockId)}`;
+        const blockParams = `&comp=block&blockid=${encodeURIComponent(blockId)}&len=${block.size}`;
         const fullBlockUrl = `${targetUrl}${blockParams}`;
 
         // Final Proxy URL
@@ -236,6 +236,7 @@ export async function uploadToAzureStorage(
             method: 'PUT',
             headers: {
                 'x-ms-version': '2017-04-17',
+                'x-ms-blob-type': 'BlockBlob',
                 'Content-Type': 'application/octet-stream',
             },
             body: block,

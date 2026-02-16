@@ -89,6 +89,9 @@ export async function deployToIntune({
         onProgress?.('uploading', 40);
         console.log(`[Deploy] Uploading encrypted payload. Size: ${encryptedPayload.size}, Type: ${encryptedPayload.type}`);
 
+        // Small safety delay for SAS URI propagation
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         await uploadToAzureStorage(storageUri, encryptedPayload, (progress) => {
             onProgress?.('uploading', 40 + (progress * 0.4)); // Map 0-100 to 40-80
         });
