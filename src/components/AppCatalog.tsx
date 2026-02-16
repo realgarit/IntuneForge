@@ -88,6 +88,8 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
     const [activeCustomizations, setActiveCustomizations] = useState<Set<string>>(new Set());
     const [deploymentNotes, setDeploymentNotes] = useState('');
 
+    const categories = ['All', ...Array.from(new Set(APP_CATALOG.map(app => app.category)))];
+
     const searchGroups = async (query: string) => {
         if (!query || query.length < 3 || !isAuthenticated) return;
 
