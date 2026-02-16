@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Upload, FileArchive, Link2, AlertCircle, Plus, Trash2 } from 'lucide-react';
+import { Upload, FileArchive, Link2, AlertCircle, Plus, Trash2, Check, Info } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

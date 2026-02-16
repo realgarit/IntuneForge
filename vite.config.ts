@@ -22,12 +22,37 @@ const azureBlobProxy = () => ({
       }
 
       try {
+        // Forward headers from original request
+        const headers = new Headers();
+        const allowedHeaders = ['content-type', 'content-length', 'if-match', 'if-none-match', 'if-modified-since', 'if-unmodified-since'];
+
+        Object.entries(req.headers).forEach(([key, value]) => {
+          const lowerKey = key.toLowerCase();
+          if (allowedHeaders.includes(lowerKey) || lowerKey.startsWith('x-ms-')) {
+            if (value) headers.set(key, Array.isArray(value) ? value[0] : value);
+          }
+        });
+
+        // For PUT/POST, we need to read the body
+        let body: Buffer | undefined = undefined;
+        if (req.method === 'PUT' || req.method === 'POST') {
+          const chunks: any[] = [];
+          for await (const chunk of req) {
+            chunks.push(chunk);
+          }
+          body = Buffer.concat(chunks);
+          
+          if (req.headers['content-length']) {
+            headers.set('content-length', req.headers['content-length'] as string);
+          } else if (body) {
+            headers.set('content-length', body.length.toString());
+          }
+        }
+
         const response = await fetch(targetUrl, {
           method: req.method,
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-            'Accept': '*/*',
-          },
+          headers: headers,
+          body: body,
         });
 
         // Copy headers from response

@@ -234,6 +234,10 @@ export async function uploadToAzureStorage(
 
         const blockResponse = await fetch(blockUrl, {
             method: 'PUT',
+            headers: {
+                'x-ms-version': '2017-04-17',
+                'Content-Type': 'application/octet-stream',
+            },
             body: block,
         });
 
@@ -259,6 +263,7 @@ ${blockIds.map(id => `  <Latest>${id}</Latest>`).join('\n')}
         method: 'PUT',
         headers: {
             'Content-Type': 'application/xml',
+            'x-ms-version': '2017-04-17',
         },
         body: blockListXml,
     });
