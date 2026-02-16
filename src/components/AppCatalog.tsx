@@ -31,8 +31,10 @@ import type { CatalogApp } from '@/lib/app-catalog';
 import { cn } from '@/lib/utils';
 
 import { usePackage } from '@/contexts/PackageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { getAzureADGroups } from '@/lib/graph-api';
 import { syncDetectionRulesWithVersion } from '@/lib/package-config';
-import type { PackageAssignment } from '@/lib/package-config';
+import type { PackageAssignment, AssignmentTarget } from '@/lib/package-config';
 
 interface AppCatalogProps {
     onSelect: (app: CatalogApp, file: File) => void;
@@ -54,6 +56,7 @@ const getCategoryIcon = (category: string) => {
 
 export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
     const { addConfigs } = usePackage();
+    const { isAuthenticated, getAccessToken } = useAuth();
     const [search, setSearch] = useState('');
     const searchInputRef = useSearchShortcut();
     const [selectedCategory, setSelectedCategory] = useState('All');
@@ -61,6 +64,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
     const [bulkDownloading, setBulkDownloading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [iconErrors, setIconErrors] = useState<Set<string>>(new Set());
+    const [iconFallbacks, setIconFallbacks] = useState<Map<string, string>>(new Map());
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
     // Multi-select state
@@ -72,7 +76,11 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
 
     // Auto-assignment state
     const [autoAssign, setAutoAssign] = useState<boolean>(false);
-    const [assignmentTarget, setAssignmentTarget] = useState<'all-users' | 'all-devices'>('all-devices');
+    const [assignmentTarget, setAssignmentTarget] = useState<AssignmentTarget>('all-devices');
+    const [selectedGroup, setSelectedGroup] = useState<{ id: string; name: string } | null>(null);
+    const [groupSearch, setGroupSearch] = useState('');
+    const [isSearchingGroups, setIsSearchingGroups] = useState(false);
+    const [foundGroups, setFoundGroups] = useState<Array<{ id: string; displayName: string }>>([]);
 
     // Customization State
     const [view, setView] = useState<'list' | 'customize'>('list');
@@ -80,108 +88,78 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
     const [activeCustomizations, setActiveCustomizations] = useState<Set<string>>(new Set());
     const [deploymentNotes, setDeploymentNotes] = useState('');
 
-    const categories = ['All', ...new Set(APP_CATALOG.map(app => app.category))].sort();
+    const searchGroups = async (query: string) => {
+        if (!query || query.length < 3 || !isAuthenticated) return;
 
-    const filteredApps = APP_CATALOG.filter(app => {
-        const matchesSearch = app.name.toLowerCase().includes(search.toLowerCase()) ||
-            app.publisher.toLowerCase().includes(search.toLowerCase());
-        const matchesCategory = selectedCategory === 'All' || app.category === selectedCategory;
-        return matchesSearch && matchesCategory;
-    });
-
-    const handleIconError = (appId: string) => {
-        setIconErrors(prev => {
-            const next = new Set(prev);
-            next.add(appId);
-            return next;
-        });
-    };
-
-    const handleAppClick = (app: CatalogApp) => {
-        if (app.customizations && app.customizations.length > 0) {
-            setSelectedApp(app);
-            setActiveCustomizations(new Set());
-            setDeploymentNotes('');
-            setView('customize');
-            setError(null);
-        } else {
-            downloadApp(app).catch(() => { /* error handled in downloadApp */ });
-        }
-    };
-
-    const toggleCustomization = (id: string) => {
-        const newSet = new Set(activeCustomizations);
-        if (newSet.has(id)) {
-            newSet.delete(id);
-        } else {
-            newSet.add(id);
-        }
-        setActiveCustomizations(newSet);
-    };
-
-    const downloadApp = async (app: CatalogApp, customizations: Set<string> = new Set(), silent = false, notes = '') => {
-        if (!silent) setDownloading(app.id);
-        setError(null);
+        setIsSearchingGroups(true);
         try {
-            // Use the proxy to download the file
-            const proxyUrl = `/api/proxy?url=${encodeURIComponent(app.downloadUrl)}`;
-            const response = await fetch(proxyUrl);
+            const token = await getAccessToken();
+            const groups = await getAzureADGroups(token, query);
+            setFoundGroups(groups);
+        } catch (error) {
+            console.error('Failed to search groups:', error);
+        } finally {
+            setIsSearchingGroups(false);
+        }
+    };
 
-            if (!response.ok) {
-                throw new Error(`Failed to download: ${response.statusText}`);
-            }
-
-            const blob = await response.blob();
-            const file = new File([blob], app.filename, { type: blob.type });
-            
-            console.log(`[Catalog] Downloaded ${app.name}: ${file.size} bytes`);
-
-            // Apply customizations to install command
-            let finalInstallCommand = app.installCommand;
-            if (app.customizations) {
-                app.customizations.forEach(c => {
-                    if (customizations.has(c.id)) {
-                        finalInstallCommand += ` ${c.arg}`;
-                    }
+    const handleIconError = (app: CatalogApp) => {
+        if (!iconFallbacks.has(app.id)) {
+            // Try fallback to Google Favicon service
+            try {
+                const domain = new URL(app.downloadUrl).hostname;
+                const fallbackUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+                setIconFallbacks(prev => {
+                    const next = new Map(prev);
+                    next.set(app.id, fallbackUrl);
+                    return next;
+                });
+            } catch {
+                setIconErrors(prev => {
+                    const next = new Set(prev);
+                    next.add(app.id);
+                    return next;
                 });
             }
-
-            const appToPackage = {
-                ...app,
-                installCommand: finalInstallCommand,
-                notes
-            };
-
-            if (!silent) {
-                onSelect(appToPackage as unknown as CatalogApp, file);
-            }
-            return { app: appToPackage, file };
-        } catch (err: unknown) {
-            console.error(err);
-            if (!silent) setError(err instanceof Error ? err.message : 'Download failed');
-            throw err;
-        } finally {
-            if (!silent) setDownloading(null);
+        } else {
+            // If fallback also fails, mark as permanent error
+            setIconErrors(prev => {
+                const next = new Set(prev);
+                next.add(app.id);
+                return next;
+            });
         }
     };
+
+    const [bulkProgress, setBulkProgress] = useState<{current: number, total: number, message: string} | null>(null);
 
     const handleBulkDownload = async () => {
         setBulkDownloading(true);
         setError(null);
+        setBulkProgress({ current: 0, total: 0, message: 'Starting...' });
+        
         const appsToDownload = APP_CATALOG.filter(a => selectedAppIds.has(a.id));
+        setBulkProgress({ current: 0, total: appsToDownload.length, message: `Downloading ${appsToDownload.length} apps...` });
+        
         const results: { app: CatalogApp, file: File }[] = [];
 
         try {
-            for (const app of appsToDownload) {
+            for (let i = 0; i < appsToDownload.length; i++) {
+                const app = appsToDownload[i];
+                setBulkProgress(prev => ({ ...prev!, current: i + 1, message: `Downloading ${app.name}...` }));
                 const result = await downloadApp(app, new Set(), true);
                 results.push(result);
             }
+
+            setBulkProgress(prev => ({ ...prev!, message: 'Creating configurations...' }));
 
             // Create configurations
             const newConfigs = results.map(({ app }) => {
                 const assignments: PackageAssignment[] = autoAssign ? [
                     {
                         target: assignmentTarget,
+                        groupId: assignmentTarget === 'group' ? selectedGroup?.id : undefined,
+                        groupName: assignmentTarget === 'group' ? selectedGroup?.name : undefined,
                         intent: 'required',
                         notifications: 'showAll'
                     }
@@ -213,12 +191,56 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
             });
 
             addConfigs(newConfigs);
+
+            // Optional: Bulk Deploy if authenticated
+            if (isAuthenticated && autoAssign) {
+                const { createIntuneWinPackage } = await import('@/lib/intunewin');
+                const { deployToIntune } = await import('@/lib/deploy');
+                const token = await getAccessToken();
+
+                for (let i = 0; i < newConfigs.length; i++) {
+                    const config = newConfigs[i];
+                    const file = results[i].file;
+                    
+                    setBulkProgress({ 
+                        current: i + 1, 
+                        total: newConfigs.length, 
+                        message: `Deploying ${config.displayName} (1/2: Packaging)...` 
+                    });
+
+                    const packageResult = await createIntuneWinPackage({
+                        name: config.displayName,
+                        version: config.version,
+                        publisher: config.publisher,
+                        setupFile: config.setupFileName,
+                        file: file
+                    });
+
+                    setBulkProgress({ 
+                        current: i + 1, 
+                        total: newConfigs.length, 
+                        message: `Deploying ${config.displayName} (2/2: Uploading)...` 
+                    });
+
+                    await deployToIntune({
+                        accessToken: token,
+                        config,
+                        intunewinBlob: packageResult.intunewinBlob,
+                        encryptedPayload: packageResult.encryptedPayload,
+                        metadata: packageResult.metadata
+                    });
+                }
+            }
+
             setSelectedAppIds(new Set());
             if (onBulkSelect) {
                 onBulkSelect(results);
             }
-        } catch {
-            setError('Bulk download failed. Some apps might have failed to download.');
+            setBulkProgress(null);
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message || 'Bulk process failed.');
+            setBulkProgress(null);
         } finally {
             setBulkDownloading(false);
         }
@@ -241,10 +263,10 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                             {selectedApp.iconUrl && !iconErrors.has(selectedApp.id) ? (
                                 <div className="h-16 w-16 bg-white rounded-2xl shadow-md border p-3 flex items-center justify-center">
                                     <img
-                                        src={selectedApp.iconUrl}
+                                        src={iconFallbacks.get(selectedApp.id) || selectedApp.iconUrl}
                                         alt=""
                                         className="h-full w-full object-contain"
-                                        onError={() => handleIconError(selectedApp.id)}
+                                        onError={() => handleIconError(selectedApp)}
                                     />
                                 </div>
                             ) : (
@@ -589,10 +611,10 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                             {app.iconUrl && !iconErrors.has(app.id) ? (
                                                 <div className="relative h-16 w-16 bg-white rounded-2xl shadow-md border border-border/10 p-3 flex items-center justify-center overflow-hidden">
                                                     <img
-                                                        src={app.iconUrl}
+                                                        src={iconFallbacks.get(app.id) || app.iconUrl}
                                                         alt=""
                                                         className="h-full w-full object-contain"
-                                                        onError={() => handleIconError(app.id)}
+                                                        onError={() => handleIconError(app)}
                                                     />
                                                 </div>
                                             ) : (
@@ -735,10 +757,10 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                                     <div className="h-8 w-8 bg-white rounded-lg border p-1 flex items-center justify-center flex-shrink-0">
                                                         {app.iconUrl && !iconErrors.has(app.id) ? (
                                                             <img
-                                                                src={app.iconUrl}
+                                                                src={iconFallbacks.get(app.id) || app.iconUrl}
                                                                 alt=""
                                                                 className="h-full w-full object-contain"
-                                                                onError={() => handleIconError(app.id)}
+                                                                onError={() => handleIconError(app)}
                                                             />
                                                         ) : (
                                                             <Hammer className="h-4 w-4 text-muted-foreground/40" />
@@ -794,21 +816,21 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
 
                 {/* Bulk Actions Footer */}
                 {selectedAppIds.size > 0 && (
-                    <div className="sticky bottom-4 left-0 right-0 z-20">
-                        <div className="bg-background/80 backdrop-blur-2xl border-2 border-primary/30 rounded-2xl p-4 shadow-2xl animate-in slide-in-from-bottom-8 duration-700 overflow-hidden">
-                            <div className="flex flex-col lg:flex-row gap-6 items-center relative z-10">
+                    <div className="sticky bottom-0 left-0 right-0 z-20 pb-4">
+                        <div className="bg-background/95 backdrop-blur-2xl border-2 border-primary/30 rounded-2xl p-4 shadow-[0_-8px_32px_rgba(0,0,0,0.15)] animate-in slide-in-from-bottom-8 duration-700">
+                            <div className="flex flex-col lg:flex-row gap-4 items-center relative z-10">
                                 <div className="flex items-center gap-4 flex-1">
-                                    <div className="relative h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-black text-xl shadow-lg shadow-primary/40 rotate-3">
+                                    <div className="relative h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-black text-lg shadow-lg shadow-primary/40">
                                         {selectedAppIds.size}
                                     </div>
                                     <div>
-                                        <p className="font-black text-lg leading-tight">Batch Process</p>
-                                        <p className="text-[11px] text-muted-foreground font-medium">{selectedAppIds.size} applications selected</p>
+                                        <p className="font-black text-base leading-tight">Batch Process</p>
+                                        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{selectedAppIds.size} apps selected</p>
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-                                    <div className="flex items-center gap-4 px-4 py-2 bg-muted/40 rounded-xl border border-border/40 h-10 shadow-inner">
+                                <div className="flex flex-wrap items-center justify-center lg:justify-end gap-3 w-full lg:w-auto">
+                                    <div className="flex items-center gap-3 px-3 py-1.5 bg-muted/40 rounded-xl border border-border/40 h-10 shadow-inner">
                                         <div className="flex items-center gap-2 group/opt">
                                             <input
                                                 type="checkbox"
@@ -817,7 +839,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                                 onChange={(e) => setKillProcesses(e.target.checked)}
                                                 className="h-3 w-3 rounded accent-primary cursor-pointer"
                                             />
-                                            <Label htmlFor="kill-opt" className="text-[9px] font-bold cursor-pointer uppercase tracking-tighter text-muted-foreground">Kill Processes</Label>
+                                            <Label htmlFor="kill-opt" className="text-[9px] font-bold cursor-pointer uppercase tracking-tighter text-muted-foreground whitespace-nowrap">Kill Processes</Label>
                                         </div>
 
                                         <div className="flex items-center gap-2 group/opt">
@@ -828,11 +850,11 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                                 onChange={(e) => setSkipIfRunning(e.target.checked)}
                                                 className="h-3 w-3 rounded accent-primary cursor-pointer"
                                             />
-                                            <Label htmlFor="skip-opt" className="text-[9px] font-bold cursor-pointer uppercase tracking-tighter text-muted-foreground">Skip if Running</Label>
+                                            <Label htmlFor="skip-opt" className="text-[9px] font-bold cursor-pointer uppercase tracking-tighter text-muted-foreground whitespace-nowrap">Skip if Running</Label>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2 bg-muted/60 px-4 py-2 rounded-xl border-2 border-border/50 h-10 shadow-inner">
+                                    <div className="flex items-center gap-2 bg-muted/60 px-3 py-1.5 rounded-xl border-2 border-border/50 h-10 shadow-inner relative">
                                         <input
                                             type="checkbox"
                                             id="auto-assign"
@@ -840,33 +862,82 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                             onChange={(e) => setAutoAssign(e.target.checked)}
                                             className="h-4 w-4 rounded accent-primary cursor-pointer"
                                         />
-                                        <Label htmlFor="auto-assign" className="text-[10px] font-black cursor-pointer uppercase tracking-widest text-muted-foreground/80">Auto-Assign</Label>
+                                        <Label htmlFor="auto-assign" className="text-[10px] font-black cursor-pointer uppercase tracking-widest text-muted-foreground/80 whitespace-nowrap">Auto-Assign</Label>
                                         {autoAssign && (
-                                            <select
-                                                value={assignmentTarget}
-                                                onChange={(e) => setAssignmentTarget(e.target.value as 'all-users' | 'all-devices')}
-                                                className="text-[9px] bg-primary/10 rounded-lg px-2 py-1 border-none font-black text-primary cursor-pointer outline-none transition-all ml-1 shadow-sm"
-                                            >
-                                                <option value="all-devices">Devices</option>
-                                                <option value="all-users">Users</option>
-                                            </select>
+                                            <div className="flex items-center gap-2">
+                                                <select
+                                                    value={assignmentTarget}
+                                                    onChange={(e) => setAssignmentTarget(e.target.value as AssignmentTarget)}
+                                                    className="text-[9px] bg-primary/10 rounded-lg px-2 py-1 border-none font-black text-primary cursor-pointer outline-none transition-all shadow-sm"
+                                                >
+                                                    <option value="all-devices">All Devices</option>
+                                                    <option value="all-users">All Users</option>
+                                                    <option value="group">Specific Group</option>
+                                                </select>
+
+                                                {assignmentTarget === 'group' && (
+                                                    <div className="flex items-center gap-2">
+                                                        {selectedGroup ? (
+                                                            <div className="flex items-center gap-2 bg-primary text-primary-foreground px-2 py-1 rounded-lg text-[9px] font-bold">
+                                                                <span className="max-w-[80px] truncate">{selectedGroup.name}</span>
+                                                                <button onClick={() => setSelectedGroup(null)} className="hover:text-white/80"><X className="h-3 w-3" /></button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="relative">
+                                                                <Input
+                                                                    placeholder="Search Group..."
+                                                                    className="h-7 w-32 text-[9px] py-1 px-2 pr-6 rounded-lg bg-background"
+                                                                    value={groupSearch}
+                                                                    onChange={(e) => {
+                                                                        setGroupSearch(e.target.value);
+                                                                        searchGroups(e.target.value);
+                                                                    }}
+                                                                />
+                                                                {isSearchingGroups && (
+                                                                    <Loader2 className="absolute right-1.5 top-1.5 h-4 w-4 animate-spin text-muted-foreground" />
+                                                                )}
+                                                                {foundGroups.length > 0 && groupSearch.length >= 3 && (
+                                                                    <div className="absolute bottom-full mb-2 left-0 w-64 bg-background border rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2">
+                                                                        {foundGroups.map(group => (
+                                                                            <button
+                                                                                key={group.id}
+                                                                                className="w-full text-left px-3 py-2 text-[10px] hover:bg-muted border-b last:border-0"
+                                                                                onClick={() => {
+                                                                                    setSelectedGroup({ id: group.id, name: group.displayName });
+                                                                                    setGroupSearch('');
+                                                                                    setFoundGroups([]);
+                                                                                }}
+                                                                            >
+                                                                                <div className="font-black">{group.displayName}</div>
+                                                                                <div className="text-[8px] opacity-50 font-mono">{group.id}</div>
+                                                                            </button>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
 
                                     <Button
-                                        className="h-12 px-8 gap-3 shadow-xl shadow-primary/30 bg-gradient-to-br from-primary via-primary to-blue-600 font-black text-sm rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all w-full lg:w-auto"
+                                        className="h-10 px-6 gap-3 shadow-xl shadow-primary/30 bg-gradient-to-br from-primary via-primary to-blue-600 font-black text-[11px] uppercase tracking-wider rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
                                         onClick={handleBulkDownload}
-                                        disabled={bulkDownloading}
+                                        disabled={bulkDownloading || (autoAssign && assignmentTarget === 'group' && !selectedGroup)}
                                     >
                                         {bulkDownloading ? (
                                             <>
                                                 <Loader2 className="h-4 w-4 animate-spin" />
-                                                Processing...
+                                                <span className="max-w-[200px] truncate">
+                                                    {bulkProgress ? `${bulkProgress.current}/${bulkProgress.total}: ${bulkProgress.message}` : 'Processing...'}
+                                                </span>
                                             </>
                                         ) : (
                                             <>
                                                 <Download className="h-4 w-4" />
-                                                Deploy Selection
+                                                {autoAssign && isAuthenticated ? 'Deploy Selection' : 'Process Selection'}
                                             </>
                                         )}
                                     </Button>

@@ -33,7 +33,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Utilities',
         downloadUrl: 'https://www.7-zip.org/a/7z2600-x64.msi',
         filename: '7z2600-x64.msi',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/7zip_logo.svg/256px-7zip_logo.svg.png',
+        iconUrl: 'https://www.7-zip.org/7ziplogo.png',
         installCommand: 'msiexec /i "7z2600-x64.msi" /q',
         uninstallCommand: 'msiexec /x {23170F69-40C1-2702-2600-000001000000} /q',
         detectionRules: [{

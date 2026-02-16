@@ -55,6 +55,17 @@ export function PackageProvider({ children }: { children: React.ReactNode }) {
             updatedAt: new Date().toISOString(),
         };
         setCurrentConfig(updated);
+
+        // Sync with configs list if it exists there
+        setConfigs(prev => {
+            const index = prev.findIndex(c => c.id === updated.id);
+            if (index >= 0) {
+                const newConfigs = [...prev];
+                newConfigs[index] = updated;
+                return newConfigs;
+            }
+            return prev;
+        });
     }, [currentConfig]);
 
     const createNewConfig = useCallback(() => {
