@@ -1,25 +1,44 @@
 import { useState } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { PackageProvider } from '@/contexts/PackageContext';
+import { PackageProvider, usePackage } from '@/contexts/PackageContext';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { Dashboard } from '@/components/Dashboard';
 import { AppCatalog } from '@/components/AppCatalog';
 import { MyPackages } from '@/components/MyPackages';
 import { PackageEditor } from '@/components/PackageEditor';
+import { LinkHealth } from '@/components/LinkHealth';
 import { LogViewer } from '@/components/LogViewer';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import type { CatalogApp } from '@/lib/app-catalog';
 
-export type View = 'dashboard' | 'catalog' | 'packages' | 'editor' | 'settings';
+export type View = 'dashboard' | 'catalog' | 'packages' | 'editor' | 'settings' | 'link-health';
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const { setCurrentConfig, createNewConfig } = usePackage();
 
-  // If a config is selected and we are in dashboard, we might want to stay there or switch to editor.
-  // For now, let's just let the user navigate.
+  const handleCatalogSelect = (app: CatalogApp) => {
+    // Initialize a new config from the catalog app
+    const newConfig = createNewConfig();
 
-  const handleCatalogSelect = () => {
+    setCurrentConfig({
+      ...newConfig,
+      name: app.name,
+      publisher: app.publisher,
+      version: app.version,
+      description: app.description,
+      sourceType: 'url',
+      sourceUrl: app.downloadUrl,
+      filename: app.filename,
+      iconUrl: app.iconUrl,
+      installCommand: app.installCommand,
+      uninstallCommand: app.uninstallCommand,
+      detectionRules: app.detectionRules || [],
+      updatedAt: new Date().toISOString(),
+    });
+
     setCurrentView('editor');
   };
 
@@ -32,9 +51,11 @@ function AppContent() {
       case 'packages':
         return <MyPackages onEdit={() => setCurrentView('editor')} />;
       case 'editor':
-        return <PackageEditor />;
+        return <PackageEditor onComplete={() => setCurrentView('packages')} />;
+      case 'link-health':
+        return <LinkHealth />;
       case 'settings':
-        return <Dashboard onNavigate={setCurrentView} />; // Fallback or dedicated view
+        return <Dashboard onNavigate={setCurrentView} />;
       default:
         return <Dashboard onNavigate={setCurrentView} />;
     }
