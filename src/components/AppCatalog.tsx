@@ -22,6 +22,7 @@ import {
     FileText,
     X
 } from 'lucide-react';
+import { AppIcon } from '@/components/AppIcon';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from "@/components/ui/label";
@@ -63,8 +64,6 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
     const [downloading, setDownloading] = useState<string | null>(null);
     const [bulkDownloading, setBulkDownloading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [iconErrors, setIconErrors] = useState<Set<string>>(new Set());
-    const [iconFallbacks, setIconFallbacks] = useState<Map<string, string>>(new Map());
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
     // Multi-select state
@@ -221,33 +220,6 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
         }
     };
 
-    const handleIconError = (app: CatalogApp) => {
-        if (!iconFallbacks.has(app.id)) {
-            // Try fallback to Google Favicon service
-            try {
-                const domain = new URL(app.downloadUrl).hostname;
-                const fallbackUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
-                setIconFallbacks(prev => {
-                    const next = new Map(prev);
-                    next.set(app.id, fallbackUrl);
-                    return next;
-                });
-            } catch {
-                setIconErrors(prev => {
-                    const next = new Set(prev);
-                    next.add(app.id);
-                    return next;
-                });
-            }
-        } else {
-            // If fallback also fails, mark as permanent error
-            setIconErrors(prev => {
-                const next = new Set(prev);
-                next.add(app.id);
-                return next;
-            });
-        }
-    };
 
     const [bulkProgress, setBulkProgress] = useState<{current: number, total: number, message: string} | null>(null);
 
@@ -378,20 +350,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                             <TooltipContent className="rounded-lg font-bold">Back to Catalog</TooltipContent>
                         </Tooltip>
                         <div className="flex items-center gap-5">
-                            {selectedApp.iconUrl && !iconErrors.has(selectedApp.id) ? (
-                                <div className="h-16 w-16 bg-white rounded-2xl shadow-md border p-3 flex items-center justify-center">
-                                    <img
-                                        src={iconFallbacks.get(selectedApp.id) || selectedApp.iconUrl}
-                                        alt=""
-                                        className="h-full w-full object-contain"
-                                        onError={() => handleIconError(selectedApp)}
-                                    />
-                                </div>
-                            ) : (
-                                <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20 shadow-inner">
-                                    <Hammer className="h-8 w-8 text-primary" />
-                                </div>
-                            )}
+                            <AppIcon app={selectedApp} size="lg" />
                             <div>
                                 <h2 className="text-3xl font-bold tracking-tight">{selectedApp.name}</h2>
                                 <p className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
@@ -726,20 +685,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
 
                                     <div className="flex gap-4 items-start mb-4 relative z-0">
                                         <div className="relative flex-shrink-0 group-hover:scale-105 transition-transform duration-500">
-                                            {app.iconUrl && !iconErrors.has(app.id) ? (
-                                                <div className="relative h-16 w-16 bg-white rounded-2xl shadow-md border border-border/10 p-3 flex items-center justify-center overflow-hidden">
-                                                    <img
-                                                        src={iconFallbacks.get(app.id) || app.iconUrl}
-                                                        alt=""
-                                                        className="h-full w-full object-contain"
-                                                        onError={() => handleIconError(app)}
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <div className="relative h-16 w-16 bg-secondary/50 rounded-2xl flex items-center justify-center border-2 border-dashed border-muted-foreground/20">
-                                                    <Hammer className="h-8 w-8 text-muted-foreground/40" />
-                                                </div>
-                                            )}
+                                            <AppIcon app={app} size="md" />
                                         </div>
 
                                         <div className="flex-1 min-w-0 pr-8">
@@ -872,18 +818,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                                             </td>
                                             <td className="p-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="h-8 w-8 bg-white rounded-lg border p-1 flex items-center justify-center flex-shrink-0">
-                                                        {app.iconUrl && !iconErrors.has(app.id) ? (
-                                                            <img
-                                                                src={iconFallbacks.get(app.id) || app.iconUrl}
-                                                                alt=""
-                                                                className="h-full w-full object-contain"
-                                                                onError={() => handleIconError(app)}
-                                                            />
-                                                        ) : (
-                                                            <Hammer className="h-4 w-4 text-muted-foreground/40" />
-                                                        )}
-                                                    </div>
+                                                    <AppIcon app={app} size="sm" />
                                                     <div>
                                                         <p className="font-bold text-sm group-hover:text-primary transition-colors leading-tight">{app.name}</p>
                                                         <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-black">{app.category}</p>
