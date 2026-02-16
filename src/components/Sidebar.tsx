@@ -1,41 +1,31 @@
-import { Plus, LayoutDashboard, Library, Package, Settings, ChevronRight, Activity } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useState } from 'react';
-import { usePackage } from '@/contexts/PackageContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { SettingsDialog } from '@/components/SettingsDialog';
+import { LayoutDashboard, Library, Package, Settings, Plus, Activity, ChevronRight, HeartPulse } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePackage } from '@/contexts/PackageContext';
+import { SettingsDialog } from '@/components/SettingsDialog';
+import { useState, useEffect } from 'react';
 import type { View } from '@/App';
 
 interface SidebarProps {
     currentView: View;
     onNavigate: (view: View) => void;
-    settingsOpen?: boolean;
-    onSettingsOpenChange?: (open: boolean) => void;
+    settingsOpen: boolean;
+    onSettingsOpenChange: (open: boolean) => void;
 }
 
-export function Sidebar({
-    currentView,
-    onNavigate,
-    settingsOpen: propsSettingsOpen,
-    onSettingsOpenChange
-}: SidebarProps) {
-    const { clientId, tenantId, isAuthenticated } = useAuth();
+export function Sidebar({ currentView, onNavigate, settingsOpen, onSettingsOpenChange }: SidebarProps) {
+    const { isAuthenticated } = useAuth();
     const [showSetupCue, setShowSetupCue] = useState(false);
-    const [internalSettingsOpen, setInternalSettingsOpen] = useState(false);
 
-    const settingsOpen = propsSettingsOpen !== undefined ? propsSettingsOpen : internalSettingsOpen;
-    const setSettingsOpen = onSettingsOpenChange || setInternalSettingsOpen;
-
-    // Check if visual cue should be shown
-    useState(() => {
-        const isDismissed = localStorage.getItem('settings-cue-dismissed') === 'true';
-        const isSetup = !!clientId && !!tenantId;
-
-        if (!isSetup && !isDismissed) {
-            setTimeout(() => setShowSetupCue(true), 1000);
+    useEffect(() => {
+        const dismissed = localStorage.getItem('settings-cue-dismissed');
+        if (!isAuthenticated && !dismissed) {
+            setShowSetupCue(true);
+        } else {
+            setShowSetupCue(false);
         }
-    });
+    }, [isAuthenticated]);
 
     const handleDismissCue = () => {
         setShowSetupCue(false);
@@ -43,21 +33,20 @@ export function Sidebar({
     };
 
     const handleOpenSettings = (open: boolean) => {
-        setSettingsOpen(open);
+        onSettingsOpenChange(open);
         if (open) {
             handleDismissCue();
         }
     };
-    const {
-        createNewConfig,
-        configs
-    } = usePackage();
+
+    const { createNewConfig, configs } = usePackage();
 
     const navItems = [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { id: 'catalog', label: 'App Catalog', icon: Library },
         { id: 'packages', label: 'My Packages', icon: Package },
         { id: 'editor', label: 'Package Editor', icon: Settings },
+        { id: 'link-health', label: 'Link Health', icon: HeartPulse },
     ] as const;
 
     const handleNewPackage = () => {
