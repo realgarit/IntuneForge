@@ -176,6 +176,9 @@ export async function createIntuneWinPackage(
     // Read the source file
     const fileBuffer = await packageInfo.file.arrayBuffer();
     const fileBytes = new Uint8Array(fileBuffer);
+    
+    console.log(`[IntuneWin] Source file: ${packageInfo.file.name}, Size: ${packageInfo.file.size} bytes`);
+    console.log(`[IntuneWin] Buffer length: ${fileBuffer.byteLength} bytes`);
 
     onProgress?.('Creating inner ZIP...', 10);
 

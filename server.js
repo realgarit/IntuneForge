@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import https from 'https';
 import fs from 'fs';
+import { Readable } from 'stream';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,10 +30,19 @@ app.use((req, res, next) => {
 });
 
 // Proxy endpoint logic
-app.all('/api/proxy', express.raw({ type: '*/*', limit: '50mb' }), async (req, res) => {
+app.all('/api/proxy', async (req, res) => {
     const targetUrl = req.query.url;
     if (!targetUrl) return res.status(400).send('Missing "url"');
 
+    // Only parse body for POST/PUT
+    if (req.method === 'POST' || req.method === 'PUT') {
+        return express.raw({ type: '*/*', limit: '50mb' })(req, res, () => handleProxy(req, res, targetUrl));
+    }
+    
+    return handleProxy(req, res, targetUrl);
+});
+
+async function handleProxy(req, res, targetUrl) {
     try {
         const headers = new Headers();
         
@@ -59,21 +69,11 @@ app.all('/api/proxy', express.raw({ type: '*/*', limit: '50mb' }), async (req, r
 
         let body = null;
         if (req.method === 'PUT' || req.method === 'POST') {
-            // Check if express.raw() populated req.body
             if (req.body && (Buffer.isBuffer(req.body) || typeof req.body === 'string')) {
                 body = req.body;
                 headers.set('content-length', body.length.toString());
-            } else {
-                // If body wasn't parsed (e.g. no content-type), we can try to pass req directly as a stream
-                // or use the content-length from headers if it exists
-                body = req; 
-                if (req.headers['content-length']) {
-                    headers.set('content-length', req.headers['content-length']);
-                }
             }
             
-            // Only add x-ms-blob-type for standard PUT requests if not already present
-            // Azure rejects this header on 'comp=block' or 'comp=blocklist' operations
             if (!headers.has('x-ms-blob-type') && !targetUrl.includes('comp=')) {
                 headers.set('x-ms-blob-type', 'BlockBlob');
             }
@@ -83,7 +83,7 @@ app.all('/api/proxy', express.raw({ type: '*/*', limit: '50mb' }), async (req, r
             method: req.method,
             headers: headers,
             body: body,
-            duplex: 'half', // Required when body is a stream in some environments
+            duplex: 'half',
             redirect: 'follow',
         });
 
@@ -102,19 +102,17 @@ app.all('/api/proxy', express.raw({ type: '*/*', limit: '50mb' }), async (req, r
         
         // Stream the response body
         if (response.body) {
-            const reader = response.body.getReader();
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                res.write(value);
-            }
+            Readable.fromWeb(response.body).pipe(res);
+        } else {
+            res.end();
         }
-        res.end();
     } catch (error) {
         console.error('[Proxy Error]:', error);
-        res.status(502).send(`Proxy Error: ${error.message}`);
+        if (!res.headersSent) {
+            res.status(502).send(`Proxy Error: ${error.message}`);
+        }
     }
-});
+}
 
 // Serve static files
 if (fs.existsSync(distPath)) {
