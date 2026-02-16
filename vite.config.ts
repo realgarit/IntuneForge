@@ -11,10 +11,8 @@ import { IncomingMessage, ServerResponse } from 'http'
 const azureBlobProxy = () => ({
   name: 'azure-blob-proxy',
   configureServer(server: ViteDevServer) {
-    server.middlewares.use('/api/proxy', (req: IncomingMessage, res: ServerResponse) => {
+    server.middlewares.use('/api/proxy', async (req: IncomingMessage, res: ServerResponse) => {
       // Parse the target URL from the query parameter
-      // req.url is the path relative to the mount point (e.g. /?url=...)
-      // We construct a dummy base to parse it easily
       const urlObj = new URL(req.url!, `http://${req.headers.host}`);
       const targetUrl = urlObj.searchParams.get('url');
 
@@ -24,46 +22,41 @@ const azureBlobProxy = () => ({
         return;
       }
 
-      // console.log(`[AzureProxy] Proxying to: ${targetUrl}`);
-
       try {
-        const targetUrlObj = new URL(targetUrl);
-        const options: https.RequestOptions = {
-          hostname: targetUrlObj.hostname,
-          port: 443,
-          path: `${targetUrlObj.pathname}${targetUrlObj.search}`,
+        const response = await fetch(targetUrl, {
           method: req.method,
           headers: {
-            ...req.headers,
-            host: targetUrlObj.hostname, // Important: Set Host header to Azure
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+            'Accept': '*/*',
           },
-        };
+        });
 
-        // Filter out headers that might cause issues (like Origin/Referer if strict)
-        if (options.headers) {
-          const headers = options.headers as Record<string, string | string[] | undefined>;
-          delete headers.origin;
-          delete headers.referer;
-          // delete (options.headers as any).host; // construct handled above
+        // Copy headers from response
+        response.headers.forEach((value, key) => {
+            if (!['content-encoding', 'content-length', 'transfer-encoding', 'connection'].includes(key.toLowerCase())) {
+                res.setHeader(key, value);
+            }
+        });
+        
+        // Ensure CORS is allowed
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.statusCode = response.status;
+        
+        // Stream the response body
+        if (response.body) {
+            const reader = response.body.getReader();
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                res.write(value);
+            }
         }
-
-        const proxyReq = https.request(options, (proxyRes) => {
-          res.writeHead(proxyRes.statusCode || 500, proxyRes.headers);
-          proxyRes.pipe(res);
-        });
-
-        proxyReq.on('error', (err) => {
-          console.error('[AzureProxy] Error:', err);
-          res.statusCode = 502;
-          res.end(`Proxy Error: ${err.message}`);
-        });
-
-        req.pipe(proxyReq);
+        res.end();
       } catch (error: unknown) {
-        console.error('[AzureProxy] Invalid Target URL:', targetUrl);
-        res.statusCode = 400;
+        console.error('[AzureProxy] Error:', error);
+        res.statusCode = 502;
         const message = error instanceof Error ? error.message : 'Unknown error';
-        res.end(`Invalid Target URL: ${message}`);
+        res.end(`Proxy Error: ${message}`);
       }
     });
   },

@@ -26,19 +26,19 @@ export interface CatalogApp {
 export const APP_CATALOG: CatalogApp[] = [
     {
         id: '7zip',
-        name: '7-Zip 23.01 (x64)',
+        name: '7-Zip 26.00 (x64)',
         publisher: 'Igor Pavlov',
         description: '7-Zip is a file archiver with a high compression ratio.',
-        version: '23.01',
+        version: '26.00',
         category: 'Utilities',
-        downloadUrl: 'https://www.7-zip.org/a/7z2301-x64.msi',
-        filename: '7z2301-x64.msi',
+        downloadUrl: 'https://www.7-zip.org/a/7z2600-x64.msi',
+        filename: '7z2600-x64.msi',
         iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/7zip_logo.svg/256px-7zip_logo.svg.png',
-        installCommand: 'msiexec /i "7z2301-x64.msi" /q',
-        uninstallCommand: 'msiexec /x {23170F69-40C1-2702-2301-000001000000} /q',
+        installCommand: 'msiexec /i "7z2600-x64.msi" /q',
+        uninstallCommand: 'msiexec /x {23170F69-40C1-2702-2600-000001000000} /q',
         detectionRules: [{
             type: 'msi',
-            productCode: '{23170F69-40C1-2702-2301-000001000000}'
+            productCode: '{23170F69-40C1-2702-2600-000001000000}'
         }],
         customizations: [
             {
@@ -116,15 +116,15 @@ export const APP_CATALOG: CatalogApp[] = [
     },
     {
         id: 'npp',
-        name: 'Notepad++ 8.6',
+        name: 'Notepad++ 8.9.1',
         publisher: 'Don Ho',
         description: 'Notepad++ is a free source code editor and Notepad replacement.',
-        version: '8.6',
+        version: '8.9.1',
         category: 'Development',
-        downloadUrl: 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.6/npp.8.6.Installer.x64.exe',
-        filename: 'npp.8.6.Installer.x64.exe',
+        downloadUrl: 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.9.1/npp.8.9.1.Installer.x64.exe',
+        filename: 'npp.8.9.1.Installer.x64.exe',
         iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Notepad%2B%2B_Logo.svg/256px-Notepad%2B%2B_Logo.svg.png',
-        installCommand: 'npp.8.6.Installer.x64.exe /S',
+        installCommand: 'npp.8.9.1.Installer.x64.exe /S',
         uninstallCommand: '%ProgramFiles%\\Notepad++\\uninstall.exe /S',
         detectionRules: [{
             type: 'file',
@@ -252,9 +252,9 @@ export const APP_CATALOG: CatalogApp[] = [
         name: 'Microsoft PowerToys',
         publisher: 'Microsoft',
         description: 'Microsoft PowerToys is a set of utilities for power users to tune and streamline their Windows experience.',
-        version: 'Latest',
+        version: '0.97.2',
         category: 'Utilities',
-        downloadUrl: 'https://github.com/microsoft/PowerToys/releases/download/v0.79.0/PowerToysSetup-0.79.0-x64.exe',
+        downloadUrl: 'https://github.com/microsoft/PowerToys/releases/download/v0.97.2/PowerToysSetup-0.97.2-x64.exe',
         filename: 'PowerToysSetup.exe',
         iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Microsoft_PowerToys_logo.svg/256px-Microsoft_PowerToys_logo.svg.png',
         installCommand: 'PowerToysSetup.exe /install /quiet /norestart',
@@ -362,7 +362,7 @@ export const APP_CATALOG: CatalogApp[] = [
         description: 'Power BI Desktop puts visual analytics at your fingertips.',
         version: 'Latest',
         category: 'Productivity',
-        downloadUrl: 'https://download.microsoft.com/download/8/8/0/8808A872-F0E4-419F-BA32-2AD27147C711/PBIDesktopSetup_x64.exe',
+        downloadUrl: 'https://go.microsoft.com/fwlink/?LinkId=220261',
         filename: 'PBIDesktopSetup_x64.exe',
         iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/New_Power_BI_Logo.svg/256px-New_Power_BI_Logo.svg.png',
         installCommand: 'PBIDesktopSetup_x64.exe -quiet -norestart ACCEPT_EULA=1',
@@ -417,19 +417,19 @@ export const APP_CATALOG: CatalogApp[] = [
     },
     {
         id: 'putty',
-        name: 'PuTTY 0.80 (x64)',
+        name: 'PuTTY 0.83 (x64)',
         publisher: 'Simon Tatham',
         description: 'PuTTY is a free and open-source terminal emulator, serial console and network file transfer application.',
-        version: '0.80',
+        version: '0.83',
         category: 'Development',
-        downloadUrl: 'https://the.earth.li/~sgtatham/putty/latest/w64/putty-64bit-0.80-installer.msi',
-        filename: 'putty-64bit-0.80-installer.msi',
+        downloadUrl: 'https://the.earth.li/~sgtatham/putty/latest/w64/putty-64bit-0.83-installer.msi',
+        filename: 'putty-64bit-0.83-installer.msi',
         iconUrl: 'https://www.chiark.greenend.org.uk/~sgtatham/putty/putty-icon-128.png',
-        installCommand: 'msiexec /i "putty-64bit-0.80-installer.msi" /qn',
+        installCommand: 'msiexec /i "putty-64bit-0.83-installer.msi" /qn',
         uninstallCommand: 'msiexec /x {ProductCode} /qn',
         detectionRules: [{
             type: 'msi',
-            productCode: '{74F3B367-73E8-41E3-8B39-6E2A5D5A4C0A}' // Example code
+            productCode: '{82559E67-08C0-41E3-8B39-6E2A5D5A4C0A}' // Updated code
         }]
     },
     {
@@ -437,9 +437,9 @@ export const APP_CATALOG: CatalogApp[] = [
         name: 'Git for Windows',
         publisher: 'The Git Development Community',
         description: 'Git is a free and open source distributed version control system.',
-        version: '2.44.0',
+        version: '2.53.0',
         category: 'Development',
-        downloadUrl: 'https://github.com/git-for-windows/git/releases/download/v2.44.0.windows.1/Git-2.44.0-64-bit.exe',
+        downloadUrl: 'https://github.com/git-for-windows/git/releases/download/v2.53.0.windows.1/Git-2.53.0-64-bit.exe',
         filename: 'Git-64-bit.exe',
         iconUrl: 'https://git-scm.com/images/logos/downloads/Git-Icon-1788C.png',
         installCommand: 'Git-64-bit.exe /VERYSILENT /NORESTART',
