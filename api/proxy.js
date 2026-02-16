@@ -25,7 +25,6 @@ export default async function handler(req) {
     try {
         const headers = new Headers();
         // Forward essential headers and all x-ms- headers
-        // We explicitly skip content-length here and set it later
         const allowedHeaders = ['content-type', 'accept', 'if-match', 'if-none-match', 'if-modified-since', 'if-unmodified-since'];
 
         for (const [key, value] of req.headers.entries()) {
@@ -37,34 +36,25 @@ export default async function handler(req) {
 
         let body = null;
         if (req.method === 'PUT' || req.method === 'POST') {
-            // Priority 1: Check for 'len' query parameter (our custom fallback)
-            const queryLen = url.searchParams.get('len');
+            // CRITICAL: Azure Storage does not support "Transfer-Encoding: chunked".
+            // By consuming the body into an ArrayBuffer, we force fetch to set a 
+            // concrete Content-Length and avoid chunked encoding.
+            const buffer = await req.arrayBuffer();
+            body = buffer;
+            headers.set('content-length', buffer.byteLength.toString());
             
-            // Priority 2: Use existing content-length header
-            const incomingContentLength = req.headers.get('content-length');
-
-            if (queryLen) {
-                headers.set('content-length', queryLen);
-                body = req.body; // Try streaming first if we have the length
-            } else if (incomingContentLength && incomingContentLength !== '0') {
-                headers.set('content-length', incomingContentLength);
-                body = req.body;
-            } else {
-                // Priority 3: Consume body to determine length
-                const buffer = await req.arrayBuffer();
-                if (buffer.byteLength > 0) {
-                    body = buffer;
-                    headers.set('content-length', buffer.byteLength.toString());
-                } else {
-                    headers.set('content-length', '0');
-                }
-            }
-
-            // Always ensure x-ms-blob-type for PUT requests
+            // Ensure x-ms-blob-type is set for Azure
             if (!headers.has('x-ms-blob-type')) {
                 headers.set('x-ms-blob-type', 'BlockBlob');
             }
         }
+
+        const response = await fetch(targetUrl, {
+            method: req.method,
+            headers: headers,
+            body: body,
+            redirect: 'follow',
+        });
 
         const response = await fetch(targetUrl, {
             method: req.method,
