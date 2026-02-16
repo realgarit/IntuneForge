@@ -126,7 +126,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Development',
         downloadUrl: 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.9.1/npp.8.9.1.Installer.x64.exe',
         filename: 'npp.8.9.1.Installer.x64.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/ea/Notepad_plus_plus.svg',
+        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/notepadplusplus.png',
         installCommand: 'npp.8.9.1.Installer.x64.exe /S',
         uninstallCommand: '%ProgramFiles%\\Notepad++\\uninstall.exe /S',
         detectionRules: [{
@@ -146,7 +146,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Media',
         downloadUrl: 'https://get.videolan.org/vlc/3.0.21/win64/vlc-3.0.21-win64.exe?direct',
         filename: 'vlc-3.0.21-win64.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/VLC_Icon.svg',
+        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/vlc.png',
         installCommand: 'vlc-3.0.21-win64.exe /L=1033 /S',
         uninstallCommand: '%ProgramFiles%\\VideoLAN\\VLC\\uninstall.exe /S',
         detectionRules: [{
@@ -204,7 +204,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Communication',
         downloadUrl: 'https://downloads.slack-edge.com/releases/windows/4.36.136/prod/x64/SlackSetup.msi',
         filename: 'SlackSetup.msi',
-        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/slack.png',
+        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/slack.png',
         installCommand: 'msiexec /i "SlackSetup.msi" /qn /norestart',
         uninstallCommand: 'msiexec /x {ProductCode} /qn',
         detectionRules: [{
@@ -232,7 +232,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Development',
         downloadUrl: 'https://code.visualstudio.com/sha/download?build=stable&os=win32-x64',
         filename: 'VSCodeUserSetup-x64.exe',
-        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/vscode.png',
+        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/visual-studio-code.png',
         installCommand: 'VSCodeSetup-x64.exe /VERYSILENT /MERGETASKS=!runcode',
         uninstallCommand: '%ProgramFiles%\\Microsoft VS Code\\unins000.exe /VERYSILENT',
         detectionRules: [{
@@ -259,7 +259,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Utilities',
         downloadUrl: 'https://github.com/microsoft/PowerToys/releases/download/v0.97.2/PowerToysSetup-0.97.2-x64.exe',
         filename: 'PowerToysSetup.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c0/2020_PowerToys_Icon.svg',
+        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/microsoft-powertoys.png',
         installCommand: 'PowerToysSetup.exe /install /quiet /norestart',
         uninstallCommand: '%ProgramFiles%\\PowerToys\\uninstall.exe /quiet',
         detectionRules: [{
@@ -279,7 +279,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2300620320/AcroRdrDC2300620320_en_US.exe',
         filename: 'AcroRdrDC.exe',
-        iconUrl: 'https://icon.horse/icon/adobe.com',
+        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/adobe-reader.png',
         installCommand: 'AcroRdrDC.exe /sPB /rs /msi EULA_ACCEPT=YES',
         uninstallCommand: 'msiexec /x {AC76BA86-1033-FF00-7760-BC15014EA700} /qn',
         detectionRules: [{
@@ -299,7 +299,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Communication',
         downloadUrl: 'https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64',
         filename: 'DiscordSetup.exe',
-        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/discord.png',
+        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/discord.png',
         installCommand: 'DiscordSetup.exe /S',
         uninstallCommand: '%LocalAppData%\\Discord\\Update.exe --uninstall',
         detectionRules: [{
@@ -367,7 +367,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://go.microsoft.com/fwlink/?LinkId=220261',
         filename: 'PBIDesktopSetup_x64.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/cf/Power_BI_logo.svg',
+        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/powerbi.png',
         installCommand: 'PBIDesktopSetup_x64.exe -quiet -norestart ACCEPT_EULA=1',
         uninstallCommand: 'PBIDesktopSetup_x64.exe -uninstall -quiet',
         detectionRules: [{
@@ -407,7 +407,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Utilities',
         downloadUrl: 'https://www.rarlab.com/rar/winrar-x64-720.exe',
         filename: 'winrar-x64-720.exe',
-        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/winrar.png',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/22/WinRAR_icon.png',
         installCommand: 'winrar-x64-720.exe /S',
         uninstallCommand: '%ProgramFiles%\\WinRAR\\uninstall.exe /S',
         detectionRules: [{
@@ -427,7 +427,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Development',
         downloadUrl: 'https://the.earth.li/~sgtatham/putty/latest/w64/putty-64bit-0.83-installer.msi',
         filename: 'putty-64bit-0.83-installer.msi',
-        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/putty.png',
+        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/putty.png',
         installCommand: 'msiexec /i "putty-64bit-0.83-installer.msi" /qn',
         uninstallCommand: 'msiexec /x {ProductCode} /qn',
         detectionRules: [{
@@ -467,7 +467,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Development',
         downloadUrl: 'https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe',
         filename: 'Docker Desktop Installer.exe',
-        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/docker.png',
+        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/docker.png',
         installCommand: '"Docker Desktop Installer.exe" install --quiet',
         uninstallCommand: '"Docker Desktop Installer.exe" uninstall --quiet',
         detectionRules: [{
@@ -487,7 +487,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Media',
         downloadUrl: 'https://download.scdn.co/SpotifySetup.exe',
         filename: 'SpotifySetup.exe',
-        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/spotify.png',
+        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/spotify.png',
         installCommand: 'SpotifySetup.exe /silent',
         uninstallCommand: '%LocalAppData%\\Spotify\\Spotify.exe --uninstall --silent',
         detectionRules: [{
@@ -507,7 +507,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2400120604/AcroRdrDC2400120604_en_US.exe',
         filename: 'AcroRdrDC2400120604_en_US.exe',
-        iconUrl: 'https://icon.horse/icon/adobe.com',
+        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/adobe-acrobat.png',
         installCommand: 'AcroRdrDC2400120604_en_US.exe /sAll /rs /msi EULA_ACCEPT=YES',
         uninstallCommand: 'msiexec /x {AC76BA86-1033-FF00-7760-BC15014EA700} /qn',
         detectionRules: [{
@@ -527,7 +527,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Utilities',
         downloadUrl: 'https://download.anydesk.com/AnyDesk.exe',
         filename: 'AnyDesk.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/f7/AnyDesk-logo.svg',
+        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/anydesk.png',
         installCommand: 'AnyDesk.exe --install "%ProgramFiles(x86)%\\AnyDesk" --silent',
         uninstallCommand: '"%ProgramFiles(x86)%\\AnyDesk\\AnyDesk.exe" --uninstall --silent',
         detectionRules: [{
