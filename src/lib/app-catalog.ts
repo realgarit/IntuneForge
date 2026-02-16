@@ -259,7 +259,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Utilities',
         downloadUrl: 'https://github.com/microsoft/PowerToys/releases/download/v0.97.2/PowerToysSetup-0.97.2-x64.exe',
         filename: 'PowerToysSetup.exe',
-        iconUrl: 'https://docs.microsoft.com/en-us/windows/images/powertoys.png',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/2b/2020_PowerToys_Icon.svg',
         installCommand: 'PowerToysSetup.exe /install /quiet /norestart',
         uninstallCommand: '%ProgramFiles%\\PowerToys\\uninstall.exe /quiet',
         detectionRules: [{
@@ -279,7 +279,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2300620320/AcroRdrDC2300620320_en_US.exe',
         filename: 'AcroRdrDC.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Adobe_Acrobat_reader_logo_%282020%29.svg/120px-Adobe_Acrobat_reader_logo_%282020%29.svg.png',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/60/Adobe_Acrobat_Reader_icon_%282020%29.svg',
         installCommand: 'AcroRdrDC.exe /sPB /rs /msi EULA_ACCEPT=YES',
         uninstallCommand: 'msiexec /x {AC76BA86-1033-FF00-7760-BC15014EA700} /qn',
         detectionRules: [{
@@ -507,7 +507,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2400120604/AcroRdrDC2400120604_en_US.exe',
         filename: 'AcroRdrDC2400120604_en_US.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Adobe_Acrobat_Pro_icon_%282020%29.svg/120px-Adobe_Acrobat_Pro_icon_%282020%29.svg.png',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/60/Adobe_Acrobat_Reader_icon_%282020%29.svg',
         installCommand: 'AcroRdrDC2400120604_en_US.exe /sAll /rs /msi EULA_ACCEPT=YES',
         uninstallCommand: 'msiexec /x {AC76BA86-1033-FF00-7760-BC15014EA700} /qn',
         detectionRules: [{
@@ -567,7 +567,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://www.pdf24.org/products/pdf-creator/download/pdf24-creator-x64.msi',
         filename: 'pdf24-creator-x64.msi',
-        iconUrl: 'https://www.pdf24.org/images/pdf24-creator-icon.png',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c0/PDF24_Creator_application_logo_256x256.png',
         installCommand: 'msiexec /i "pdf24-creator-x64.msi" /qn',
         uninstallCommand: 'msiexec /x "pdf24-creator-x64.msi" /qn',
         detectionRules: [{
