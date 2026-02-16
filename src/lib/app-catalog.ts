@@ -65,7 +65,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Browsers',
         downloadUrl: 'https://download.mozilla.org/?product=firefox-esr-msi-latest-ssl&os=win64&lang=en-US',
         filename: 'Firefox Setup.msi',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Firefox_logo%2C_2019.svg/256px-Firefox_logo%2C_2019.svg.png',
+        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/firefox.png',
         installCommand: 'msiexec /i "Firefox Setup.msi" /qn',
         uninstallCommand: 'msiexec /x "Firefox Setup.msi" /qn',
         detectionRules: [{
@@ -98,7 +98,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Browsers',
         downloadUrl: 'https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7B36C87828-0904-9721-3642-120532594646%7D%26lang%3Den%26browser%3D4%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26brand%3DGCEB/dl/chrome/install/googlechromestandaloneenterprise64.msi',
         filename: 'googlechromestandaloneenterprise64.msi',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Google_Chrome_icon_%28February_2022%29.svg/256px-Google_Chrome_icon_%28February_2022%29.svg.png',
+        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/google-chrome.png',
         installCommand: 'msiexec /i "googlechromestandaloneenterprise64.msi" /qn',
         uninstallCommand: 'msiexec /x "googlechromestandaloneenterprise64.msi" /qn',
         detectionRules: [{
@@ -126,7 +126,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Development',
         downloadUrl: 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.9.1/npp.8.9.1.Installer.x64.exe',
         filename: 'npp.8.9.1.Installer.x64.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Notepad%2B%2B_Logo.svg/256px-Notepad%2B%2B_Logo.svg.png',
+        iconUrl: 'https://icon.horse/icon/notepad-plus-plus.org',
         installCommand: 'npp.8.9.1.Installer.x64.exe /S',
         uninstallCommand: '%ProgramFiles%\\Notepad++\\uninstall.exe /S',
         detectionRules: [{
@@ -146,7 +146,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Media',
         downloadUrl: 'https://get.videolan.org/vlc/3.0.21/win64/vlc-3.0.21-win64.exe?direct',
         filename: 'vlc-3.0.21-win64.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/VLC_Icon.svg/256px-VLC_Icon.svg.png',
+        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/vlc.png',
         installCommand: 'vlc-3.0.21-win64.exe /L=1033 /S',
         uninstallCommand: '%ProgramFiles%\\VideoLAN\\VLC\\uninstall.exe /S',
         detectionRules: [{
@@ -166,7 +166,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Communication',
         downloadUrl: 'https://zoom.us/client/latest/ZoomInstallerFull.msi',
         filename: 'ZoomInstallerFull.msi',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Zoom_Communications_Logo.svg/256px-Zoom_Communications_Logo.svg.png',
+        iconUrl: 'https://icon.horse/icon/zoom.us',
         installCommand: 'msiexec /i "ZoomInstallerFull.msi" /qn /norestart',
         uninstallCommand: 'msiexec /x {ProductCode} /qn',
         detectionRules: [{
@@ -204,7 +204,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Communication',
         downloadUrl: 'https://downloads.slack-edge.com/releases/windows/4.36.136/prod/x64/SlackSetup.msi',
         filename: 'SlackSetup.msi',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Slack_icon_2019.svg/256px-Slack_icon_2019.svg.png',
+        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/slack.png',
         installCommand: 'msiexec /i "SlackSetup.msi" /qn /norestart',
         uninstallCommand: 'msiexec /x {ProductCode} /qn',
         detectionRules: [{
@@ -232,7 +232,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Development',
         downloadUrl: 'https://code.visualstudio.com/sha/download?build=stable&os=win32-x64',
         filename: 'VSCodeUserSetup-x64.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/256px-Visual_Studio_Code_1.35_icon.svg.png',
+        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/vscode.png',
         installCommand: 'VSCodeSetup-x64.exe /VERYSILENT /MERGETASKS=!runcode',
         uninstallCommand: '%ProgramFiles%\\Microsoft VS Code\\unins000.exe /VERYSILENT',
         detectionRules: [{
@@ -259,7 +259,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Utilities',
         downloadUrl: 'https://github.com/microsoft/PowerToys/releases/download/v0.97.2/PowerToysSetup-0.97.2-x64.exe',
         filename: 'PowerToysSetup.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Microsoft_PowerToys_logo.svg/256px-Microsoft_PowerToys_logo.svg.png',
+        iconUrl: 'https://icon.horse/icon/microsoft.com',
         installCommand: 'PowerToysSetup.exe /install /quiet /norestart',
         uninstallCommand: '%ProgramFiles%\\PowerToys\\uninstall.exe /quiet',
         detectionRules: [{
@@ -279,7 +279,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2300620320/AcroRdrDC2300620320_en_US.exe',
         filename: 'AcroRdrDC.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Adobe_Acrobat_Reader_DC_logo.svg/256px-Adobe_Acrobat_Reader_DC_logo.svg.png',
+        iconUrl: 'https://icon.horse/icon/adobe.com',
         installCommand: 'AcroRdrDC.exe /sPB /rs /msi EULA_ACCEPT=YES',
         uninstallCommand: 'msiexec /x {AC76BA86-1033-FF00-7760-BC15014EA700} /qn',
         detectionRules: [{
@@ -299,7 +299,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Communication',
         downloadUrl: 'https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64',
         filename: 'DiscordSetup.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Discord_Color_Logo.svg/256px-Discord_Color_Logo.svg.png',
+        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/discord.png',
         installCommand: 'DiscordSetup.exe /S',
         uninstallCommand: '%LocalAppData%\\Discord\\Update.exe --uninstall',
         detectionRules: [{
@@ -327,7 +327,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Utilities',
         downloadUrl: 'https://www.dropbox.com/download?plat=win&type=full',
         filename: 'DropboxOfflineInstall.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Dropbox_Icon.svg/256px-Dropbox_Icon.svg.png',
+        iconUrl: 'https://icon.horse/icon/dropbox.com',
         installCommand: 'DropboxOfflineInstall.exe /S',
         uninstallCommand: '%ProgramFiles(x86)%\\Dropbox\\Client\\DropboxUninstaller.exe /S',
         detectionRules: [{
@@ -347,7 +347,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://www.evernote.com/download/get.php?plat=win',
         filename: 'Evernote-latest.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Evernote_logo.svg/256px-Evernote_logo.svg.png',
+        iconUrl: 'https://icon.horse/icon/evernote.com',
         installCommand: 'Evernote-latest.exe /S',
         uninstallCommand: '%ProgramFiles%\\Evernote\\Uninstall.exe /S',
         detectionRules: [{
@@ -367,7 +367,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://go.microsoft.com/fwlink/?LinkId=220261',
         filename: 'PBIDesktopSetup_x64.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/New_Power_BI_Logo.svg/256px-New_Power_BI_Logo.svg.png',
+        iconUrl: 'https://icon.horse/icon/powerbi.microsoft.com',
         installCommand: 'PBIDesktopSetup_x64.exe -quiet -norestart ACCEPT_EULA=1',
         uninstallCommand: 'PBIDesktopSetup_x64.exe -uninstall -quiet',
         detectionRules: [{
@@ -387,7 +387,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Communication',
         downloadUrl: 'https://statics.teams.cdn.office.net/production-windows-x64/lkg/MicrosoftTeams-x64.msix',
         filename: 'MicrosoftTeams-x64.msix',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg/256px-Microsoft_Office_Teams_%282018%E2%80%93present%29.svg.png',
+        iconUrl: 'https://icon.horse/icon/teams.microsoft.com',
         installCommand: 'powershell -Command "Add-AppxPackage -Path .\\MicrosoftTeams-x64.msix"',
         uninstallCommand: 'powershell -Command "Get-AppxPackage -Name MicrosoftTeams | Remove-AppxPackage"',
         detectionRules: [{
@@ -407,7 +407,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Utilities',
         downloadUrl: 'https://www.rarlab.com/rar/winrar-x64-720.exe',
         filename: 'winrar-x64-720.exe',
-        iconUrl: 'https://www.win-rar.com/fileadmin/winrar-logos/winrar-logo-small.png',
+        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/winrar.png',
         installCommand: 'winrar-x64-720.exe /S',
         uninstallCommand: '%ProgramFiles%\\WinRAR\\uninstall.exe /S',
         detectionRules: [{
@@ -427,7 +427,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Development',
         downloadUrl: 'https://the.earth.li/~sgtatham/putty/latest/w64/putty-64bit-0.83-installer.msi',
         filename: 'putty-64bit-0.83-installer.msi',
-        iconUrl: 'https://www.chiark.greenend.org.uk/~sgtatham/putty/putty-icon-128.png',
+        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/putty.png',
         installCommand: 'msiexec /i "putty-64bit-0.83-installer.msi" /qn',
         uninstallCommand: 'msiexec /x {ProductCode} /qn',
         detectionRules: [{
@@ -467,7 +467,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Development',
         downloadUrl: 'https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe',
         filename: 'Docker Desktop Installer.exe',
-        iconUrl: 'https://www.docker.com/wp-content/uploads/2023/05/symbol-blue-docker-logo.png',
+        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/docker.png',
         installCommand: '"Docker Desktop Installer.exe" install --quiet',
         uninstallCommand: '"Docker Desktop Installer.exe" uninstall --quiet',
         detectionRules: [{
@@ -487,7 +487,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Media',
         downloadUrl: 'https://download.scdn.co/SpotifySetup.exe',
         filename: 'SpotifySetup.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Spotify_logo_without_text.svg/256px-Spotify_logo_without_text.svg.png',
+        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/spotify.png',
         installCommand: 'SpotifySetup.exe /silent',
         uninstallCommand: '%LocalAppData%\\Spotify\\Spotify.exe --uninstall --silent',
         detectionRules: [{
@@ -507,7 +507,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2400120604/AcroRdrDC2400120604_en_US.exe',
         filename: 'AcroRdrDC2400120604_en_US.exe',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Adobe_Acrobat_Reader_DC_logo.svg/256px-Adobe_Acrobat_Reader_DC_logo.svg.png',
+        iconUrl: 'https://icon.horse/icon/adobe.com',
         installCommand: 'AcroRdrDC2400120604_en_US.exe /sAll /rs /msi EULA_ACCEPT=YES',
         uninstallCommand: 'msiexec /x {AC76BA86-1033-FF00-7760-BC15014EA700} /qn',
         detectionRules: [{
@@ -547,7 +547,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Utilities',
         downloadUrl: 'https://download01.logi.com/web/ftp/pub/techsupport/optionsplus/logioptionsplus_installer.exe',
         filename: 'logioptionsplus_installer.exe',
-        iconUrl: 'https://img.icons8.com/color/48/logitech-options-plus.png',
+        iconUrl: 'https://icon.horse/icon/logitech.com',
         installCommand: 'logioptionsplus_installer.exe /quiet /analytics no /sso no /update no',
         uninstallCommand: 'msiexec /x {ProductCode} /qn',
         detectionRules: [{
@@ -567,7 +567,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://www.pdf24.org/products/pdf-creator/download/pdf24-creator-x64.msi',
         filename: 'pdf24-creator-x64.msi',
-        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/PDF24_logo.svg/256px-PDF24_logo.svg.png',
+        iconUrl: 'https://icon.horse/icon/pdf24.org',
         installCommand: 'msiexec /i "pdf24-creator-x64.msi" /qn',
         uninstallCommand: 'msiexec /x "pdf24-creator-x64.msi" /qn',
         detectionRules: [{
@@ -587,7 +587,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Development',
         downloadUrl: 'https://nodejs.org/dist/v24.13.1/node-v24.13.1-x64.msi',
         filename: 'node-v24.13.1-x64.msi',
-        iconUrl: 'https://static.cdnlogo.com/logos/n/10/node-js.svg',
+        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/nodejs.png',
         installCommand: 'msiexec /i "node-v24.13.1-x64.msi" /qn',
         uninstallCommand: 'msiexec /x "node-v24.13.1-x64.msi" /qn',
         detectionRules: [{
