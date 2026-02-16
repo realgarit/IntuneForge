@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Upload, FileArchive, Link2, AlertCircle, Plus, Trash2, Check, Info } from 'lucide-react';
+import { Upload, FileArchive, Link2, AlertCircle, Plus, Trash2, Check, Info, Download, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePackage } from '@/contexts/PackageContext';
-import { formatFileSize } from '@/lib/utils';
+import { formatFileSize, downloadFile } from '@/lib/utils';
 
 export function FileUploader() {
     const {
@@ -19,7 +19,23 @@ export function FileUploader() {
         setAdditionalFiles
     } = usePackage();
     const [isDragging, setIsDragging] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
     const [urlError, setUrlError] = useState<string | null>(null);
+
+    const handleDownload = async () => {
+        if (!currentConfig?.sourceUrl || !currentConfig?.setupFileName) return;
+        
+        setIsDownloading(true);
+        setUrlError(null);
+        try {
+            const file = await downloadFile(currentConfig.sourceUrl, currentConfig.setupFileName);
+            setSelectedFile(file);
+        } catch (err) {
+            setUrlError(err instanceof Error ? err.message : 'Download failed');
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
     const handleFileSelect = useCallback((file: File) => {
         const validExtensions = ['.exe', '.msi', '.msix', '.msixbundle'];
@@ -226,6 +242,31 @@ export function FileUploader() {
                                                     or click to browse <span className="text-primary font-bold">.exe, .msi, .msix</span>
                                                 </p>
                                             </div>
+                                            {currentConfig?.sourceUrl && (
+                                                <div className="pt-4 border-t border-muted-foreground/10 mt-4 flex flex-col items-center">
+                                                    <p className="text-[10px] uppercase font-black text-muted-foreground/60 mb-3 tracking-[0.2em]">or restore from catalog</p>
+                                                    <Button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDownload();
+                                                        }}
+                                                        disabled={isDownloading}
+                                                        className="gap-2.5 rounded-xl h-12 px-8 font-bold shadow-lg shadow-primary/20 bg-gradient-to-r from-primary to-blue-600 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                                    >
+                                                        {isDownloading ? (
+                                                            <>
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                                Downloading...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Download className="h-4 w-4" />
+                                                                Download from Source
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>

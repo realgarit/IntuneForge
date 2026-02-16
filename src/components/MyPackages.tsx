@@ -1,4 +1,4 @@
-import { FolderOpen, Trash2, Download, Upload, Search, Package, Plus, LayoutGrid, List, Edit3, Calendar, CheckCircle2, Check, X } from 'lucide-react';
+import { FolderOpen, Trash2, Download, Upload, Search, Package, Plus, LayoutGrid, List, Edit3, Calendar, CheckCircle2, Check, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { usePackage } from '@/contexts/PackageContext';
@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { Input } from '@/components/ui/input';
 import { useState, useEffect, useRef } from 'react';
 import { useSearchShortcut } from '@/hooks/useSearchShortcut';
-import { cn } from '@/lib/utils';
+import { cn, downloadFile } from '@/lib/utils';
 import type { PackageConfig } from '@/lib/package-config';
 
 interface MyPackagesProps {
@@ -29,6 +29,7 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
     const searchInputRef = useSearchShortcut();
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [downloadingId, setDownloadingId] = useState<string | null>(null);
     const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
     const filteredConfigs = configs.filter(c =>
@@ -36,6 +37,22 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
         c.displayName.toLowerCase().includes(search.toLowerCase()) ||
         c.publisher.toLowerCase().includes(search.toLowerCase())
     );
+
+    const handleDownload = async (config: PackageConfig) => {
+        if (!config.sourceUrl || !config.setupFileName) return;
+        
+        setDownloadingId(config.id);
+        try {
+            const file = await downloadFile(config.sourceUrl, config.setupFileName);
+            setCurrentConfig(config);
+            setSelectedFile(file);
+            onEdit();
+        } catch {
+            alert('Failed to download installer file. Please check your internet connection.');
+        } finally {
+            setDownloadingId(null);
+        }
+    };
 
     const handleImport = async () => {
         const input = document.createElement('input');
@@ -233,6 +250,23 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                                                 </div>
                                     </div>
                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-y-2 group-hover:translate-y-0" onClick={(e) => e.stopPropagation()}>
+                                        {config.sourceUrl && (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        aria-label="Download Installer"
+                                                        className="h-9 w-9 rounded-xl text-primary hover:text-primary hover:bg-primary/10 transition-colors"
+                                                        onClick={() => handleDownload(config)}
+                                                        disabled={downloadingId === config.id}
+                                                    >
+                                                        {downloadingId === config.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent className="rounded-lg font-bold">Download Installer</TooltipContent>
+                                            </Tooltip>
+                                        )}
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button
@@ -398,6 +432,24 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                                     </td>
                                     <td className="p-6 text-right" onClick={(e) => e.stopPropagation()}>
                                         <div className="flex justify-end gap-2">
+                                            {config.sourceUrl && (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button 
+                                                            variant="ghost" 
+                                                            size="icon" 
+                                                            aria-label="Download Installer" 
+                                                            className="h-10 w-10 rounded-xl hover:bg-primary/10 hover:text-primary transition-all text-primary" 
+                                                            onClick={() => handleDownload(config)}
+                                                            disabled={downloadingId === config.id}
+                                                        >
+                                                            {downloadingId === config.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent className="rounded-lg font-bold">Download Installer</TooltipContent>
+                                                </Tooltip>
+                                            )}
+
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
                                                     <Button variant="ghost" size="icon" aria-label="Edit Package" className="h-10 w-10 rounded-xl hover:bg-primary/10 hover:text-primary transition-all" onClick={() => { setCurrentConfig(config); setSelectedFile(null); onEdit(); }}>

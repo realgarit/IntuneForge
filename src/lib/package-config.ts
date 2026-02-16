@@ -252,3 +252,49 @@ export function loadAuthConfig(): AuthConfig | null {
 export function clearAuthConfig(): void {
     localStorage.removeItem(AUTH_STORAGE_KEY);
 }
+
+/**
+ * Syncs detection rules with the application version
+ */
+export function syncDetectionRulesWithVersion(rules: DetectionRule[], version: string): DetectionRule[] {
+    if (!version || version === 'Latest') return rules;
+
+    // Clean version string (remove 'v' prefix if present)
+    const cleanVersion = version.startsWith('v') ? version.substring(1) : version;
+
+    return rules.map(rule => {
+        const updated = { ...rule };
+
+        switch (updated.type) {
+            case 'msi':
+                // For MSI, we usually want to set the product version if it's missing or update it
+                updated.productVersion = cleanVersion;
+                updated.productVersionOperator = updated.productVersionOperator || 'greaterThanOrEqual';
+                break;
+            case 'file':
+                // If it's a version-based file rule, update the expected value
+                if (updated.detectionType === 'version') {
+                    updated.expectedValue = cleanVersion;
+                    updated.operator = updated.operator || 'greaterThanOrEqual';
+                }
+                break;
+            case 'registry':
+                // If it's a value-based registry rule that looks like a version check
+                if (['equals', 'greaterThan', 'greaterThanOrEqual'].includes(updated.operator)) {
+                    updated.expectedValue = cleanVersion;
+                }
+                break;
+            case 'script':
+                // For scripts, we can try to replace a version variable if it follows a common pattern
+                if (updated.scriptContent.includes('$targetVersion = [version]"1.0.0"')) {
+                    updated.scriptContent = updated.scriptContent.replace(
+                        '$targetVersion = [version]"1.0.0"',
+                        `$targetVersion = [version]"${cleanVersion}"`
+                    );
+                }
+                break;
+        }
+
+        return updated as DetectionRule;
+    });
+}

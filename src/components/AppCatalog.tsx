@@ -31,6 +31,7 @@ import type { CatalogApp } from '@/lib/app-catalog';
 import { cn } from '@/lib/utils';
 
 import { usePackage } from '@/contexts/PackageContext';
+import { syncDetectionRulesWithVersion } from '@/lib/package-config';
 import type { PackageAssignment } from '@/lib/package-config';
 
 interface AppCatalogProps {
@@ -195,7 +196,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                     iconUrl: app.iconUrl,
                     installCommandLine: app.installCommand,
                     uninstallCommandLine: app.uninstallCommand,
-                    detectionRules: app.detectionRules,
+                    detectionRules: syncDetectionRulesWithVersion(app.detectionRules, app.version),
                     packageType: (app.filename.toLowerCase().endsWith('.msi') ? 'MSI' : 'EXE') as 'MSI' | 'EXE',
                     sourceType: 'url' as const,
                     sourceUrl: app.downloadUrl,
