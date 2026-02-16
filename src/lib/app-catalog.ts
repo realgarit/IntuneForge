@@ -37,8 +37,11 @@ export const APP_CATALOG: CatalogApp[] = [
         installCommand: 'msiexec /i "7z2600-x64.msi" /q',
         uninstallCommand: 'msiexec /x {23170F69-40C1-2702-2600-000001000000} /q',
         detectionRules: [{
-            type: 'msi',
-            productCode: '{23170F69-40C1-2702-2600-000001000000}'
+            type: 'file',
+            path: '%ProgramFiles%\\7-Zip',
+            fileOrFolderName: '7zFM.exe',
+            detectionType: 'exists',
+            check32BitOn64System: false
         }],
         customizations: [
             {
@@ -278,7 +281,7 @@ export const APP_CATALOG: CatalogApp[] = [
         filename: 'AcroRdrDC.exe',
         iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Adobe_Acrobat_Reader_DC_logo.svg/256px-Adobe_Acrobat_Reader_DC_logo.svg.png',
         installCommand: 'AcroRdrDC.exe /sPB /rs /msi EULA_ACCEPT=YES',
-        uninstallCommand: 'msiexec /x {AC76BA86-7AD7-1033-7B44-AC0F074E4100} /qn',
+        uninstallCommand: 'msiexec /x {AC76BA86-1033-FF00-7760-BC15014EA700} /qn',
         detectionRules: [{
             type: 'file',
             path: '%ProgramFiles(x86)%\\Adobe\\Acrobat Reader DC\\Reader',
@@ -428,8 +431,11 @@ export const APP_CATALOG: CatalogApp[] = [
         installCommand: 'msiexec /i "putty-64bit-0.83-installer.msi" /qn',
         uninstallCommand: 'msiexec /x {ProductCode} /qn',
         detectionRules: [{
-            type: 'msi',
-            productCode: '{82559E67-08C0-41E3-8B39-6E2A5D5A4C0A}' // Updated code
+            type: 'file',
+            path: '%ProgramFiles%\\PuTTY',
+            fileOrFolderName: 'putty.exe',
+            detectionType: 'exists',
+            check32BitOn64System: false
         }]
     },
     {
@@ -497,12 +503,12 @@ export const APP_CATALOG: CatalogApp[] = [
         name: 'Adobe Acrobat (64-bit Unified)',
         publisher: 'Adobe',
         description: 'The complete PDF solution for today’s multi-device world. Unified installer for Reader and Pro.',
-        version: 'Latest',
+        version: '24.001.20604',
         category: 'Productivity',
-        downloadUrl: 'https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/2400120604/Acrobat_DC_Web_W64_MUI.exe',
-        filename: 'Acrobat_DC_Web_W64_MUI.exe',
+        downloadUrl: 'https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2400120604/AcroRdrDC2400120604_en_US.exe',
+        filename: 'AcroRdrDC2400120604_en_US.exe',
         iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Adobe_Acrobat_Reader_DC_logo.svg/256px-Adobe_Acrobat_Reader_DC_logo.svg.png',
-        installCommand: 'Acrobat_DC_Web_W64_MUI.exe /sAll /rs /msi EULA_ACCEPT=YES',
+        installCommand: 'AcroRdrDC2400120604_en_US.exe /sAll /rs /msi EULA_ACCEPT=YES',
         uninstallCommand: 'msiexec /x {AC76BA86-1033-FF00-7760-BC15014EA700} /qn',
         detectionRules: [{
             type: 'file',

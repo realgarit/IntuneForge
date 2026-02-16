@@ -69,6 +69,7 @@ app.all('/api/proxy', express.raw({ type: '*/*', limit: '50mb' }), async (req, r
         try {
             const url = new URL(targetUrl);
             headers.set('referer', `${url.protocol}//${url.hostname}/`);
+            headers.set('origin', `${url.protocol}//${url.hostname}`);
         } catch (e) {
             // ignore invalid URL
         }

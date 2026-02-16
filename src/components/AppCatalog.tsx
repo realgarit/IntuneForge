@@ -553,7 +553,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
 
                     <div className="flex-1 overflow-y-auto p-2 pr-4 scrollbar-thin">
                         {viewMode === 'grid' ? (
-                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
                                 {filteredApps.map((app) => (
                                     <div
                                         key={app.id}
