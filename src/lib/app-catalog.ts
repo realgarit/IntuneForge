@@ -126,7 +126,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Development',
         downloadUrl: 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.9.1/npp.8.9.1.Installer.x64.exe',
         filename: 'npp.8.9.1.Installer.x64.exe',
-        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/notepadplusplus.png',
+        iconUrl: 'https://notepad-plus-plus.org/images/logo.svg',
         installCommand: 'npp.8.9.1.Installer.x64.exe /S',
         uninstallCommand: '%ProgramFiles%\\Notepad++\\uninstall.exe /S',
         detectionRules: [{
@@ -146,7 +146,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Media',
         downloadUrl: 'https://get.videolan.org/vlc/3.0.21/win64/vlc-3.0.21-win64.exe?direct',
         filename: 'vlc-3.0.21-win64.exe',
-        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/vlc.png',
+        iconUrl: 'https://images.videolan.org/images/icons/vlc-48x48.png',
         installCommand: 'vlc-3.0.21-win64.exe /L=1033 /S',
         uninstallCommand: '%ProgramFiles%\\VideoLAN\\VLC\\uninstall.exe /S',
         detectionRules: [{
@@ -259,7 +259,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Utilities',
         downloadUrl: 'https://github.com/microsoft/PowerToys/releases/download/v0.97.2/PowerToysSetup-0.97.2-x64.exe',
         filename: 'PowerToysSetup.exe',
-        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/microsoft-powertoys.png',
+        iconUrl: 'https://learn.microsoft.com/en-us/windows/images/powertoys.ico',
         installCommand: 'PowerToysSetup.exe /install /quiet /norestart',
         uninstallCommand: '%ProgramFiles%\\PowerToys\\uninstall.exe /quiet',
         detectionRules: [{
@@ -279,7 +279,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2300620320/AcroRdrDC2300620320_en_US.exe',
         filename: 'AcroRdrDC.exe',
-        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/adobe-reader.png',
+        iconUrl: 'https://www.adobe.com/content/dam/cc/icons/acrobat_reader_appicon_256.svg',
         installCommand: 'AcroRdrDC.exe /sPB /rs /msi EULA_ACCEPT=YES',
         uninstallCommand: 'msiexec /x {AC76BA86-1033-FF00-7760-BC15014EA700} /qn',
         detectionRules: [{
@@ -507,7 +507,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2400120604/AcroRdrDC2400120604_en_US.exe',
         filename: 'AcroRdrDC2400120604_en_US.exe',
-        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/adobe-acrobat.png',
+        iconUrl: 'https://www.adobe.com/content/dam/cc/icons/acrobat_appicon_256.svg',
         installCommand: 'AcroRdrDC2400120604_en_US.exe /sAll /rs /msi EULA_ACCEPT=YES',
         uninstallCommand: 'msiexec /x {AC76BA86-1033-FF00-7760-BC15014EA700} /qn',
         detectionRules: [{
