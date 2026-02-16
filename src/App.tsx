@@ -66,38 +66,26 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       <Header />
 
-      <main className="flex-1 container mx-auto px-6 py-8 mb-10">
-        <div className="flex flex-col lg:flex-row gap-8 min-h-[calc(100vh-10rem)]">
-          <Sidebar
-            currentView={currentView}
-            onNavigate={setCurrentView}
-            settingsOpen={settingsOpen}
-            onSettingsOpenChange={setSettingsOpen}
-          />
-          <div className="flex-1 flex flex-col">
-            {renderView()}
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar
+          currentView={currentView}
+          onNavigate={setCurrentView}
+          settingsOpen={settingsOpen}
+          onSettingsOpenChange={setSettingsOpen}
+        />
+        <main className="flex-1 overflow-hidden relative p-0">
+          <div className="h-full flex flex-col">
+            <div className="flex-1 overflow-hidden px-8 pt-8">
+              {renderView()}
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
 
       <LogViewer />
-
-      <footer className="border-t py-4 text-center text-sm text-muted-foreground">
-        <p>
-          IntuneForge v1.3.0 • Open Source Win32 Packager •{' '}
-          <a
-            href="https://github.com/realgarit/intuneforge"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline"
-          >
-            GitHub
-          </a>
-        </p>
-      </footer>
     </div>
   );
 }

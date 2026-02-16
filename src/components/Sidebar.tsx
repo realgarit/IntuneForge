@@ -1,10 +1,11 @@
-import { LayoutDashboard, Library, Package, Settings, Plus, Activity, ChevronRight, HeartPulse } from 'lucide-react';
+import { LayoutDashboard, Library, Package, Settings, Plus, Activity, ChevronRight, HeartPulse, Menu, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePackage } from '@/contexts/PackageContext';
 import { SettingsDialog } from '@/components/SettingsDialog';
 import { useState, useEffect } from 'react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { View } from '@/App';
 
 interface SidebarProps {
@@ -17,6 +18,7 @@ interface SidebarProps {
 export function Sidebar({ currentView, onNavigate, settingsOpen, onSettingsOpenChange }: SidebarProps) {
     const { isAuthenticated } = useAuth();
     const [showSetupCue, setShowSetupCue] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     useEffect(() => {
         const dismissed = localStorage.getItem('settings-cue-dismissed');
@@ -55,59 +57,108 @@ export function Sidebar({ currentView, onNavigate, settingsOpen, onSettingsOpenC
     };
 
     return (
-        <aside className="w-full lg:w-72 shrink-0 flex flex-col h-full bg-muted/20 border-r border-border/40 p-6">
+        <aside className={cn(
+            "shrink-0 flex flex-col h-full bg-muted/20 border-r border-border/40 transition-all duration-300 ease-in-out relative",
+            isCollapsed ? "w-20 p-4" : "w-full lg:w-72 p-6"
+        )}>
+            <button
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="absolute -right-3 top-20 bg-background border border-border rounded-full p-1.5 shadow-md hover:bg-muted transition-colors z-20"
+            >
+                {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+            </button>
+
             <div className="space-y-8 flex-1">
                 <div className="space-y-2">
-                    <Button
-                        onClick={handleNewPackage}
-                        className="w-full gap-3 bg-gradient-to-br from-primary to-blue-600 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20 transition-all h-14 rounded-2xl text-sm font-black uppercase tracking-widest border-t border-white/10"
-                    >
-                        <Plus className="h-5 w-5 stroke-[3]" />
-                        New Package
-                    </Button>
+                    {isCollapsed ? (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    onClick={handleNewPackage}
+                                    size="icon"
+                                    className="w-12 h-12 mx-auto bg-gradient-to-br from-primary to-blue-600 hover:scale-[1.05] active:scale-[0.95] shadow-lg shadow-primary/20 transition-all rounded-xl"
+                                >
+                                    <Plus className="h-6 w-6 stroke-[3]" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">New Package</TooltipContent>
+                        </Tooltip>
+                    ) : (
+                        <Button
+                            onClick={handleNewPackage}
+                            className="w-full gap-3 bg-gradient-to-br from-primary to-blue-600 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20 transition-all h-14 rounded-2xl text-sm font-black uppercase tracking-widest border-t border-white/10"
+                        >
+                            <Plus className="h-5 w-5 stroke-[3]" />
+                            New Package
+                        </Button>
+                    )}
                 </div>
 
                 <nav className="space-y-1">
-                    <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mb-3">
-                        Navigation
-                    </p>
+                    {!isCollapsed && (
+                        <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mb-3">
+                            Navigation
+                        </p>
+                    )}
                     <div className="space-y-2">
-                        {navItems.map((item) => (
-                            <button
-                                key={item.id}
-                                onClick={() => onNavigate(item.id)}
-                                className={cn(
-                                    "w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 group text-sm font-bold relative overflow-hidden",
-                                    currentView === item.id
-                                        ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20"
-                                        : "text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:translate-x-1"
-                                )}
-                            >
-                                <div className="flex items-center gap-3 relative z-10">
-                                    <item.icon className={cn(
-                                        "h-5 w-5 transition-transform duration-300",
-                                        currentView === item.id ? "scale-110" : "group-hover:scale-110 group-hover:text-primary"
-                                    )} />
-                                    {item.label}
-                                </div>
-                                {currentView === item.id && (
-                                    <ChevronRight className="h-4 w-4 relative z-10 animate-in slide-in-from-left-2" />
-                                )}
-                                {currentView === item.id && (
-                                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
-                                )}
-                            </button>
-                        ))}
+                        {navItems.map((item) => {
+                            const content = (
+                                <button
+                                    key={item.id}
+                                    onClick={() => onNavigate(item.id)}
+                                    className={cn(
+                                        "w-full flex items-center rounded-2xl transition-all duration-300 group text-sm font-bold relative overflow-hidden",
+                                        isCollapsed ? "justify-center h-12 w-12 mx-auto" : "justify-between px-4 py-3.5",
+                                        currentView === item.id
+                                            ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20"
+                                            : "text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:translate-x-1"
+                                    )}
+                                >
+                                    <div className={cn(
+                                        "flex items-center relative z-10",
+                                        isCollapsed ? "justify-center" : "gap-3"
+                                    )}>
+                                        <item.icon className={cn(
+                                            "h-5 w-5 transition-transform duration-300",
+                                            currentView === item.id ? "scale-110" : "group-hover:scale-110 group-hover:text-primary"
+                                        )} />
+                                        {!isCollapsed && item.label}
+                                    </div>
+                                    {!isCollapsed && currentView === item.id && (
+                                        <ChevronRight className="h-4 w-4 relative z-10 animate-in slide-in-from-left-2" />
+                                    )}
+                                    {currentView === item.id && (
+                                        <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none" />
+                                    )}
+                                </button>
+                            );
+
+                            if (isCollapsed) {
+                                return (
+                                    <Tooltip key={item.id}>
+                                        <TooltipTrigger asChild>
+                                            {content}
+                                        </TooltipTrigger>
+                                        <TooltipContent side="right">
+                                            {item.label}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                );
+                            }
+                            return content;
+                        })}
                     </div>
                 </nav>
 
                 <div className="pt-6">
-                    <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mb-3">
-                        Resources
-                    </p>
+                    {!isCollapsed && (
+                        <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mb-3">
+                            Resources
+                        </p>
+                    )}
                     <div className="space-y-2">
                         <div className="relative">
-                            {showSetupCue && (
+                            {!isCollapsed && showSetupCue && (
                                 <div className="absolute bottom-full left-0 mb-4 w-64 p-4 rounded-xl bg-popover border border-border shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2">
                                     <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-popover border-b border-r border-border rotate-45" />
                                     <div className="space-y-2">
@@ -129,26 +180,51 @@ export function Sidebar({ currentView, onNavigate, settingsOpen, onSettingsOpenC
                                 open={settingsOpen}
                                 onOpenChange={handleOpenSettings}
                                 trigger={
-                                    <button
-                                        className={cn(
-                                            "w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 text-sm font-bold group relative",
-                                            currentView === 'settings' || settingsOpen
-                                                ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20"
-                                                : "text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:translate-x-1",
-                                            showSetupCue && "animate-bounce border-primary/50 text-primary shadow-[0_0_10px_rgba(59,130,246,0.3)]"
-                                        )}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <Settings className={cn(
-                                                "h-5 w-5 transition-transform duration-300",
-                                                currentView === 'settings' || settingsOpen ? "rotate-90" : "group-hover:rotate-45"
-                                            )} />
-                                            Settings
-                                        </div>
-                                        {showSetupCue && (
-                                            <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-primary rounded-full animate-ping" />
-                                        )}
-                                    </button>
+                                    isCollapsed ? (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <button
+                                                    className={cn(
+                                                        "w-12 h-12 flex items-center justify-center mx-auto rounded-2xl transition-all duration-300 text-sm font-bold group relative",
+                                                        currentView === 'settings' || settingsOpen
+                                                            ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20"
+                                                            : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+                                                        showSetupCue && "animate-bounce border-primary/50 text-primary shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+                                                    )}
+                                                >
+                                                    <Settings className={cn(
+                                                        "h-5 w-5 transition-transform duration-300",
+                                                        currentView === 'settings' || settingsOpen ? "rotate-90" : "group-hover:rotate-45"
+                                                    )} />
+                                                    {showSetupCue && (
+                                                        <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full animate-ping" />
+                                                    )}
+                                                </button>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="right">Settings</TooltipContent>
+                                        </Tooltip>
+                                    ) : (
+                                        <button
+                                            className={cn(
+                                                "w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 text-sm font-bold group relative",
+                                                currentView === 'settings' || settingsOpen
+                                                    ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20"
+                                                    : "text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:translate-x-1",
+                                                showSetupCue && "animate-bounce border-primary/50 text-primary shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <Settings className={cn(
+                                                    "h-5 w-5 transition-transform duration-300",
+                                                    currentView === 'settings' || settingsOpen ? "rotate-90" : "group-hover:rotate-45"
+                                                )} />
+                                                Settings
+                                            </div>
+                                            {showSetupCue && (
+                                                <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-primary rounded-full animate-ping" />
+                                            )}
+                                        </button>
+                                    )
                                 }
                             />
                         </div>
@@ -157,40 +233,45 @@ export function Sidebar({ currentView, onNavigate, settingsOpen, onSettingsOpenC
             </div>
 
             <div className="mt-auto pt-6 space-y-4">
-                <div className="p-5 bg-card/50 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden group">
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
-                        <Activity className="h-3 w-3 text-primary" />
-                        Environment Status
-                    </h4>
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-foreground/80">Microsoft Graph</span>
-                            <div className="flex items-center gap-2">
-                                <span className={cn(
-                                    "text-[9px] font-black px-1.5 py-0.5 rounded-md border",
-                                    isAuthenticated
-                                        ? "text-green-500 bg-green-500/10 border-green-500/10"
-                                        : "text-amber-500 bg-amber-500/10 border-amber-500/10"
-                                )}>
-                                    {isAuthenticated ? 'CONNECTED' : 'GUEST'}
-                                </span>
-                                <div className={cn(
-                                    "h-2 w-2 rounded-full",
-                                    isAuthenticated
-                                        ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
-                                        : "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]"
-                                )} />
+                {!isCollapsed && (
+                    <div className="p-5 bg-card/50 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden group">
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
+                            <Activity className="h-3 w-3 text-primary" />
+                            Environment Status
+                        </h4>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[11px] font-bold text-foreground/80">Microsoft Graph</span>
+                                <div className="flex items-center gap-2">
+                                    <span className={cn(
+                                        "text-[9px] font-black px-1.5 py-0.5 rounded-md border",
+                                        isAuthenticated
+                                            ? "text-green-500 bg-green-500/10 border-green-500/10"
+                                            : "text-amber-500 bg-amber-500/10 border-amber-500/10"
+                                    )}>
+                                        {isAuthenticated ? 'CONNECTED' : 'GUEST'}
+                                    </span>
+                                    <div className={cn(
+                                        "h-2 w-2 rounded-full",
+                                        isAuthenticated
+                                            ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
+                                            : "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]"
+                                    )} />
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-[11px] font-bold text-foreground/80">Storage</span>
+                                <span className="text-[9px] font-black text-muted-foreground uppercase">{configs.length > 0 ? 'Active' : 'Empty'}</span>
                             </div>
                         </div>
-                        <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-foreground/80">Storage</span>
-                            <span className="text-[9px] font-black text-muted-foreground uppercase">{configs.length > 0 ? 'Active' : 'Empty'}</span>
-                        </div>
                     </div>
-                </div>
+                )}
 
-                <div className="px-4 flex items-center justify-between">
-                    <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest">v1.3.0-stable</span>
+                <div className={cn(
+                    "flex items-center",
+                    isCollapsed ? "justify-center" : "px-4 justify-between"
+                )}>
+                    {!isCollapsed && <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest">v1.3.0-stable</span>}
                     <div className="flex gap-1">
                         <div className="h-1 w-1 rounded-full bg-muted-foreground/20" />
                         <div className="h-1 w-1 rounded-full bg-muted-foreground/20" />

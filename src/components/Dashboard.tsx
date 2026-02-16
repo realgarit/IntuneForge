@@ -44,7 +44,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     const draftPercent = configs.length > 0 ? Math.max(0, 100 - completePercent - partialPercent) : 0;
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="h-full overflow-y-auto pr-4 scrollbar-thin space-y-8 animate-in fade-in duration-500 pb-20">
             <div className="flex flex-col gap-2">
                 <h2 className="text-3xl font-bold tracking-tight">
                     Environment Overview

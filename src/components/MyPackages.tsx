@@ -96,7 +96,7 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
     }, [selectedIds, filteredConfigs.length]);
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative pb-24">
+        <div className="h-full overflow-y-auto pr-4 scrollbar-thin space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative pb-24">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h2 className="text-4xl font-black tracking-tight flex items-center gap-4">

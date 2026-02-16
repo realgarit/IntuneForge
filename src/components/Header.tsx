@@ -8,7 +8,7 @@ export function Header() {
 
     return (
         <header className="glass sticky top-0 z-50 border-b border-white/5 shadow-2xl">
-            <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+            <div className="px-8 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <div className="p-2.5 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/10 ring-1 ring-white/10">
                         <Hammer className="h-6 w-6" />
