@@ -44,12 +44,22 @@ app.all('/api/proxy', express.raw({ type: '*/*', limit: '50mb' }), async (req, r
             }
         });
 
-        // Use the buffered body from express.raw()
         let body = null;
         if (req.method === 'PUT' || req.method === 'POST') {
-            body = req.body;
-            // Ensure Content-Length is explicitly set on the outgoing fetch
-            headers.set('content-length', body.length.toString());
+            // Check if express.raw() populated req.body
+            if (req.body && (Buffer.isBuffer(req.body) || typeof req.body === 'string')) {
+                body = req.body;
+                headers.set('content-length', body.length.toString());
+                console.log(`[Proxy] Body parsed via express.raw, length: ${body.length}`);
+            } else {
+                // If body wasn't parsed (e.g. no content-type), we can try to pass req directly as a stream
+                // or use the content-length from headers if it exists
+                body = req; 
+                if (req.headers['content-length']) {
+                    headers.set('content-length', req.headers['content-length']);
+                }
+                console.log(`[Proxy] Body not parsed, using stream. Content-Length header: ${req.headers['content-length']}`);
+            }
             
             // Ensure x-ms-blob-type is set for Azure Storage
             if (!headers.has('x-ms-blob-type')) {
@@ -61,6 +71,7 @@ app.all('/api/proxy', express.raw({ type: '*/*', limit: '50mb' }), async (req, r
             method: req.method,
             headers: headers,
             body: body,
+            duplex: 'half', // Required when body is a stream in some environments
             redirect: 'follow',
         });
 
