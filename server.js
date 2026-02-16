@@ -29,36 +29,47 @@ app.use((req, res, next) => {
 });
 
 // Proxy endpoint logic
-app.all('/api/proxy', (req, res) => {
+app.all('/api/proxy', async (req, res) => {
     const targetUrl = req.query.url;
     if (!targetUrl) return res.status(400).send('Missing "url"');
 
     try {
-        const targetUrlObj = new URL(targetUrl);
-        const options = {
-            hostname: targetUrlObj.hostname,
-            port: 443,
-            path: `${targetUrlObj.pathname}${targetUrlObj.search}`,
+        const response = await fetch(targetUrl, {
             method: req.method,
-            headers: { ...req.headers, host: targetUrlObj.hostname },
-        };
-
-        const proxyReq = https.request(options, (proxyRes) => {
-            res.writeHead(proxyRes.statusCode || 500, {
-                ...proxyRes.headers,
-                'Access-Control-Allow-Origin': '*'
-            });
-            proxyRes.pipe(res);
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                'Accept': '*/*',
+            },
+            // fetch follows redirects by default
         });
 
-        proxyReq.on('error', (err) => {
-            console.error('[Proxy Error]:', err);
-            res.status(502).send(`Proxy Error: ${err.message}`);
+        // Copy headers from response
+        const responseHeaders = {};
+        response.headers.forEach((value, key) => {
+            // Skip headers that might cause issues when forwarded
+            if (!['content-encoding', 'content-length', 'transfer-encoding', 'connection'].includes(key.toLowerCase())) {
+                responseHeaders[key] = value;
+            }
         });
-
-        req.pipe(proxyReq);
+        
+        // Ensure CORS is allowed
+        responseHeaders['Access-Control-Allow-Origin'] = '*';
+        
+        res.writeHead(response.status, responseHeaders);
+        
+        // Stream the response body
+        if (response.body) {
+            const reader = response.body.getReader();
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                res.write(value);
+            }
+        }
+        res.end();
     } catch (error) {
-        res.status(400).send(`Invalid URL: ${error.message}`);
+        console.error('[Proxy Error]:', error);
+        res.status(502).send(`Proxy Error: ${error.message}`);
     }
 });
 
