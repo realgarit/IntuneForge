@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { PackageProvider, usePackage } from '@/contexts/PackageContext';
+import { syncDetectionRulesWithVersion } from '@/lib/package-config';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { Dashboard } from '@/components/Dashboard';
@@ -38,7 +39,7 @@ function AppContent() {
       iconUrl: app.iconUrl,
       installCommandLine: app.installCommand,
       uninstallCommandLine: app.uninstallCommand,
-      detectionRules: app.detectionRules || [],
+      detectionRules: syncDetectionRulesWithVersion(app.detectionRules || [], app.version),
       updatedAt: new Date().toISOString(),
     });
 

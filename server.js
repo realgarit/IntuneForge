@@ -39,10 +39,23 @@ app.all('/api/proxy', express.raw({ type: '*/*', limit: '50mb' }), async (req, r
         // Forward most headers from the original request
         Object.entries(req.headers).forEach(([key, value]) => {
             const lowerKey = key.toLowerCase();
-            if (lowerKey !== 'host' && lowerKey !== 'connection') {
+            if (lowerKey !== 'host' && lowerKey !== 'connection' && lowerKey !== 'referer') {
                 if (value) headers.set(key, Array.isArray(value) ? value[0] : value);
             }
         });
+
+        // Add a standard User-Agent if not present
+        if (!headers.has('user-agent')) {
+            headers.set('user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+        }
+
+        // Set Referer to the target domain to bypass some basic anti-hotlinking
+        try {
+            const url = new URL(targetUrl);
+            headers.set('referer', `${url.protocol}//${url.hostname}/`);
+        } catch (e) {
+            // ignore invalid URL
+        }
 
         let body = null;
         if (req.method === 'PUT' || req.method === 'POST') {
@@ -50,7 +63,6 @@ app.all('/api/proxy', express.raw({ type: '*/*', limit: '50mb' }), async (req, r
             if (req.body && (Buffer.isBuffer(req.body) || typeof req.body === 'string')) {
                 body = req.body;
                 headers.set('content-length', body.length.toString());
-                console.log(`[Proxy] Body parsed via express.raw, length: ${body.length}`);
             } else {
                 // If body wasn't parsed (e.g. no content-type), we can try to pass req directly as a stream
                 // or use the content-length from headers if it exists
@@ -58,7 +70,6 @@ app.all('/api/proxy', express.raw({ type: '*/*', limit: '50mb' }), async (req, r
                 if (req.headers['content-length']) {
                     headers.set('content-length', req.headers['content-length']);
                 }
-                console.log(`[Proxy] Body not parsed, using stream. Content-Length header: ${req.headers['content-length']}`);
             }
             
             // Only add x-ms-blob-type for standard PUT requests if not already present
