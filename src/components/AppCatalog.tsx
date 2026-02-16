@@ -90,6 +90,122 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
 
     const categories = ['All', ...Array.from(new Set(APP_CATALOG.map(app => app.category)))];
 
+    const filteredApps = APP_CATALOG.filter(app => {
+        const matchesSearch = app.name.toLowerCase().includes(search.toLowerCase()) ||
+            app.publisher.toLowerCase().includes(search.toLowerCase()) ||
+            app.category.toLowerCase().includes(search.toLowerCase());
+        const matchesCategory = selectedCategory === 'All' || app.category === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
+
+    const toggleCustomization = (id: string) => {
+        const newCustomizations = new Set(activeCustomizations);
+        if (newCustomizations.has(id)) {
+            newCustomizations.delete(id);
+        } else {
+            newCustomizations.add(id);
+        }
+        setActiveCustomizations(newCustomizations);
+    };
+
+    const downloadApp = async (app: CatalogApp, customizations: Set<string> = new Set(), silent = false, notes?: string) => {
+        setDownloading(app.id);
+        setError(null);
+
+        try {
+            const response = await fetch(app.downloadUrl);
+            if (!response.ok) throw new Error(`Download failed: ${response.statusText}`);
+
+            const blob = await response.blob();
+            const file = new File([blob], app.filename, { type: 'application/octet-stream' });
+
+            const assignments: PackageAssignment[] = autoAssign ? [
+                {
+                    target: assignmentTarget,
+                    groupId: assignmentTarget === 'group' ? selectedGroup?.id : undefined,
+                    groupName: assignmentTarget === 'group' ? selectedGroup?.name : undefined,
+                    intent: 'required',
+                    notifications: 'showAll'
+                }
+            ] : [];
+
+            const config = {
+                id: crypto.randomUUID(),
+                name: app.name,
+                displayName: app.name,
+                publisher: app.publisher,
+                description: app.description,
+                version: app.version,
+                setupFileName: app.filename,
+                iconUrl: app.iconUrl,
+                installCommandLine: app.installCommand + Array.from(customizations).map(id => ` ${app.customizations?.find(c => c.id === id)?.arg || ''}`).join(''),
+                uninstallCommandLine: app.uninstallCommand,
+                detectionRules: syncDetectionRulesWithVersion(app.detectionRules, app.version),
+                packageType: (app.filename.toLowerCase().endsWith('.msi') ? 'MSI' : 'EXE') as 'MSI' | 'EXE',
+                sourceType: 'url' as const,
+                sourceUrl: app.downloadUrl,
+                installBehavior: 'system' as const,
+                restartBehavior: 'suppress' as const,
+                assignments,
+                closeAppBeforeInstall: killProcesses,
+                skipIfRunning: skipIfRunning,
+                notes,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+
+            addConfigs([config]);
+
+            if (isAuthenticated && autoAssign) {
+                const { createIntuneWinPackage } = await import('@/lib/intunewin');
+                const { deployToIntune } = await import('@/lib/deploy');
+                const token = await getAccessToken();
+
+                const packageResult = await createIntuneWinPackage({
+                    name: config.displayName,
+                    version: config.version,
+                    publisher: config.publisher,
+                    setupFile: config.setupFileName,
+                    file: file
+                });
+
+                await deployToIntune({
+                    accessToken: token,
+                    config,
+                    intunewinBlob: packageResult.intunewinBlob,
+                    encryptedPayload: packageResult.encryptedPayload,
+                    metadata: packageResult.metadata
+                });
+            }
+
+            if (!silent) {
+                setView('list');
+                setSelectedApp(null);
+                setActiveCustomizations(new Set());
+                setDeploymentNotes('');
+            }
+
+            return { app, file };
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message || 'Download failed. Please check your internet connection.');
+            throw err;
+        } finally {
+            setDownloading(null);
+        }
+    };
+
+    const handleAppClick = (app: CatalogApp) => {
+        if (app.customizations && app.customizations.length > 0) {
+            setSelectedApp(app);
+            setView('customize');
+            setActiveCustomizations(new Set());
+            setDeploymentNotes('');
+        } else {
+            downloadApp(app, new Set()).catch(() => {});
+        }
+    };
+
     const searchGroups = async (query: string) => {
         if (!query || query.length < 3 || !isAuthenticated) return;
 
