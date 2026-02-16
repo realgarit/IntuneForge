@@ -491,5 +491,165 @@ export const APP_CATALOG: CatalogApp[] = [
             detectionType: 'exists',
             check32BitOn64System: false
         }]
+    },
+    {
+        id: 'adobe-acrobat-pro',
+        name: 'Adobe Acrobat (64-bit Unified)',
+        publisher: 'Adobe',
+        description: 'The complete PDF solution for today’s multi-device world. Unified installer for Reader and Pro.',
+        version: 'Latest',
+        category: 'Productivity',
+        downloadUrl: 'https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/2400120604/Acrobat_DC_Web_W64_MUI.exe',
+        filename: 'Acrobat_DC_Web_W64_MUI.exe',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Adobe_Acrobat_Reader_DC_logo.svg/256px-Adobe_Acrobat_Reader_DC_logo.svg.png',
+        installCommand: 'Acrobat_DC_Web_W64_MUI.exe /sAll /rs /msi EULA_ACCEPT=YES',
+        uninstallCommand: 'msiexec /x {AC76BA86-1033-FF00-7760-BC15014EA700} /qn',
+        detectionRules: [{
+            type: 'file',
+            path: '%ProgramFiles%\\Adobe\\Acrobat DC\\Acrobat',
+            fileOrFolderName: 'Acrobat.exe',
+            detectionType: 'exists',
+            check32BitOn64System: false
+        }]
+    },
+    {
+        id: 'adobe-creative-cloud',
+        name: 'Adobe Creative Cloud Desktop',
+        publisher: 'Adobe Inc.',
+        description: 'The central hub for managing Adobe apps and services.',
+        version: 'Latest',
+        category: 'Productivity',
+        downloadUrl: 'https://ccmdls.adobe.com/AdobeProducts/KCCC/CCD/5/Win64/Creative_Cloud_Set-Up.exe',
+        filename: 'Creative_Cloud_Set-Up.exe',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/Adobe_Creative_Cloud_rainbow_icon.svg',
+        installCommand: 'Creative_Cloud_Set-Up.exe --silent',
+        uninstallCommand: 'Creative_Cloud_Uninstaller.exe -u',
+        detectionRules: [{
+            type: 'file',
+            path: '%ProgramFiles%\\Adobe\\Adobe Creative Cloud\\ACC',
+            fileOrFolderName: 'Creative Cloud.exe',
+            detectionType: 'exists',
+            check32BitOn64System: false
+        }]
+    },
+    {
+        id: 'anydesk',
+        name: 'AnyDesk',
+        publisher: 'AnyDesk Software GmbH',
+        description: 'Remote desktop software for reliable remote access.',
+        version: 'Latest',
+        category: 'Utilities',
+        downloadUrl: 'https://download.anydesk.com/AnyDesk.exe',
+        filename: 'AnyDesk.exe',
+        iconUrl: 'https://cdn.iconscout.com/icon/free/png-256/anydesk-1-282700.png',
+        installCommand: 'AnyDesk.exe --install "%ProgramFiles(x86)%\\AnyDesk" --silent',
+        uninstallCommand: '"%ProgramFiles(x86)%\\AnyDesk\\AnyDesk.exe" --uninstall --silent',
+        detectionRules: [{
+            type: 'file',
+            path: '%ProgramFiles(x86)%\\AnyDesk',
+            fileOrFolderName: 'AnyDesk.exe',
+            detectionType: 'exists',
+            check32BitOn64System: true
+        }]
+    },
+    {
+        id: 'logi-options-plus',
+        name: 'Logi Options+',
+        publisher: 'Logitech',
+        description: 'Next-gen app for Logitech mice and keyboards.',
+        version: 'Latest',
+        category: 'Utilities',
+        downloadUrl: 'https://download01.logi.com/web/ftp/pub/techsupport/optionsplus/logioptionsplus_installer.exe',
+        filename: 'logioptionsplus_installer.exe',
+        iconUrl: 'https://img.icons8.com/color/48/logitech-options-plus.png',
+        installCommand: 'logioptionsplus_installer.exe /quiet /analytics no /sso no /update no',
+        uninstallCommand: 'msiexec /x {ProductCode} /qn',
+        detectionRules: [{
+            type: 'file',
+            path: '%ProgramFiles%\\LogiOptionsPlus',
+            fileOrFolderName: 'logioptionsplus.exe',
+            detectionType: 'exists',
+            check32BitOn64System: false
+        }]
+    },
+    {
+        id: 'pdf24-creator',
+        name: 'PDF24 Creator',
+        publisher: 'geek software GmbH',
+        description: 'Free and easy-to-use PDF solution with many tools.',
+        version: 'Latest',
+        category: 'Productivity',
+        downloadUrl: 'https://www.pdf24.org/products/pdf-creator/download/pdf24-creator-x64.msi',
+        filename: 'pdf24-creator-x64.msi',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/PDF24_logo.svg/256px-PDF24_logo.svg.png',
+        installCommand: 'msiexec /i "pdf24-creator-x64.msi" /qn',
+        uninstallCommand: 'msiexec /x "pdf24-creator-x64.msi" /qn',
+        detectionRules: [{
+            type: 'file',
+            path: '%ProgramFiles%\\PDF24',
+            fileOrFolderName: 'pdf24-creator.exe',
+            detectionType: 'exists',
+            check32BitOn64System: false
+        }]
+    },
+    {
+        id: 'nodejs-lts',
+        name: 'Node.js LTS',
+        publisher: 'Node.js Foundation',
+        description: 'A JavaScript runtime built on Chrome\'s V8 JavaScript engine.',
+        version: '22.14.0',
+        category: 'Development',
+        downloadUrl: 'https://nodejs.org/dist/v22.14.0/node-v22.14.0-x64.msi',
+        filename: 'node-v22.14.0-x64.msi',
+        iconUrl: 'https://static.cdnlogo.com/logos/n/10/node-js.svg',
+        installCommand: 'msiexec /i "node-v22.14.0-x64.msi" /qn',
+        uninstallCommand: 'msiexec /x "node-v22.14.0-x64.msi" /qn',
+        detectionRules: [{
+            type: 'file',
+            path: '%ProgramFiles%\\nodejs',
+            fileOrFolderName: 'node.exe',
+            detectionType: 'exists',
+            check32BitOn64System: false
+        }]
+    },
+    {
+        id: 'telegram-desktop',
+        name: 'Telegram Desktop',
+        publisher: 'Telegram FZ-LLC',
+        description: 'Fast and secure desktop messaging app.',
+        version: 'Latest',
+        category: 'Communication',
+        downloadUrl: 'https://telegram.org/dl/desktop/win64',
+        filename: 'tsetup.exe',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg',
+        installCommand: 'tsetup.exe /VERYSILENT /NORESTART',
+        uninstallCommand: '%AppData%\\Telegram Desktop\\unins000.exe /VERYSILENT',
+        detectionRules: [{
+            type: 'file',
+            path: '%AppData%\\Telegram Desktop',
+            fileOrFolderName: 'Telegram.exe',
+            detectionType: 'exists',
+            check32BitOn64System: false
+        }]
+    },
+    {
+        id: 'whatsapp-desktop',
+        name: 'WhatsApp',
+        publisher: 'WhatsApp',
+        description: 'Simple, reliable, and private messaging and calling.',
+        version: 'Latest',
+        category: 'Communication',
+        downloadUrl: 'https://web.whatsapp.com/desktop/windows/release/x64/WhatsAppSetup.exe',
+        filename: 'WhatsAppSetup.exe',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg',
+        installCommand: 'WhatsAppSetup.exe /S',
+        uninstallCommand: '%LocalAppData%\\WhatsApp\\Update.exe --uninstall',
+        detectionRules: [{
+            type: 'file',
+            path: '%LocalAppData%\\WhatsApp',
+            fileOrFolderName: 'WhatsApp.exe',
+            detectionType: 'exists',
+            check32BitOn64System: false
+        }]
     }
 ];
