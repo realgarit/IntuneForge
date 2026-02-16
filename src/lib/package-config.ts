@@ -57,6 +57,7 @@ export interface PackageConfig {
     version: string;
     description: string;
     packageType: PackageType;
+    iconUrl?: string;
 
     // Source
     sourceType: 'local' | 'url';
@@ -122,6 +123,7 @@ export function createEmptyPackageConfig(): PackageConfig {
         version: '1.0.0',
         description: '',
         packageType: 'EXE',
+        iconUrl: '',
         sourceType: 'local',
         setupFileName: '',
         installCommandLine: '',

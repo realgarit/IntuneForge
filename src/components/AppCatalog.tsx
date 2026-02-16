@@ -192,6 +192,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
                     description: app.description,
                     version: app.version,
                     setupFileName: app.filename,
+                    iconUrl: app.iconUrl,
                     installCommandLine: app.installCommand,
                     uninstallCommandLine: app.uninstallCommand,
                     detectionRules: app.detectionRules,

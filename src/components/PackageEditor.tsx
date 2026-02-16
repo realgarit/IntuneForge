@@ -36,9 +36,19 @@ export function PackageEditor() {
         <div className="flex-1 space-y-8 overflow-y-auto scrollbar-thin pr-4 animate-in slide-in-from-right-4 duration-500 pb-10">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-6">
-                    <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20 shadow-inner">
-                        <Package className="h-8 w-8 text-primary" />
-                    </div>
+                    {currentConfig.iconUrl ? (
+                        <div className="h-16 w-16 bg-white rounded-2xl shadow-md border p-3 flex items-center justify-center overflow-hidden">
+                            <img
+                                src={currentConfig.iconUrl}
+                                alt=""
+                                className="h-full w-full object-contain"
+                            />
+                        </div>
+                    ) : (
+                        <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20 shadow-inner">
+                            <Package className="h-8 w-8 text-primary" />
+                        </div>
+                    )}
                     <div>
                         <h2 className="text-4xl font-black tracking-tight leading-none">{currentConfig.displayName || currentConfig.name || 'Untitled Package'}</h2>
                         <div className="flex items-center gap-3 mt-2">

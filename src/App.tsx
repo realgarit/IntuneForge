@@ -17,24 +17,27 @@ export type View = 'dashboard' | 'catalog' | 'packages' | 'editor' | 'settings' 
 function AppContent() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { setCurrentConfig, createNewConfig } = usePackage();
+  const { setCurrentConfig, createNewConfig, setSelectedFile } = usePackage();
 
-  const handleCatalogSelect = (app: CatalogApp) => {
+  const handleCatalogSelect = (app: CatalogApp, file: File) => {
     // Initialize a new config from the catalog app
     const newConfig = createNewConfig();
+    setSelectedFile(file);
 
     setCurrentConfig({
       ...newConfig,
       name: app.name,
+      displayName: app.name,
       publisher: app.publisher,
       version: app.version,
       description: app.description,
+      packageType: app.filename.toLowerCase().endsWith('.msi') ? 'MSI' : 'EXE',
       sourceType: 'url',
       sourceUrl: app.downloadUrl,
-      filename: app.filename,
+      setupFileName: app.filename,
       iconUrl: app.iconUrl,
-      installCommand: app.installCommand,
-      uninstallCommand: app.uninstallCommand,
+      installCommandLine: app.installCommand,
+      uninstallCommandLine: app.uninstallCommand,
       detectionRules: app.detectionRules || [],
       updatedAt: new Date().toISOString(),
     });

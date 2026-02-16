@@ -224,8 +224,12 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                                                         {selectedIds.has(config.id) && <Check className="h-3.5 w-3.5 text-primary-foreground stroke-[4]" />}
                                                     </div>
                                                 </div>
-                                                <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20 group-hover:scale-110 transition-transform duration-500">
-                                                    <Package className="h-6 w-6 text-primary" />
+                                                <div className="p-3 rounded-2xl bg-white border border-border/10 group-hover:scale-110 transition-transform duration-500 shadow-sm flex items-center justify-center overflow-hidden h-12 w-12">
+                                                    {config.iconUrl ? (
+                                                        <img src={config.iconUrl} alt="" className="h-full w-full object-contain" />
+                                                    ) : (
+                                                        <Package className="h-6 w-6 text-primary" />
+                                                    )}
                                                 </div>
                                     </div>
                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-y-2 group-hover:translate-y-0" onClick={(e) => e.stopPropagation()}>
@@ -359,8 +363,12 @@ export function MyPackages({ onEdit }: MyPackagesProps) {
                                         </td>
                                     <td className="p-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="h-10 w-10 bg-primary/10 rounded-xl border border-primary/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                                                <Package className="h-5 w-5 text-primary" />
+                                            <div className="h-10 w-10 bg-white rounded-xl border border-border/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform overflow-hidden p-1 shadow-sm">
+                                                {config.iconUrl ? (
+                                                    <img src={config.iconUrl} alt="" className="h-full w-full object-contain" />
+                                                ) : (
+                                                    <Package className="h-5 w-5 text-primary" />
+                                                )}
                                             </div>
                                             <div>
                                                 <p className="font-bold group-hover:text-primary transition-colors text-base">{config.displayName || config.name || 'Untitled'}</p>
