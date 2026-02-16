@@ -126,7 +126,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Development',
         downloadUrl: 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.9.1/npp.8.9.1.Installer.x64.exe',
         filename: 'npp.8.9.1.Installer.x64.exe',
-        iconUrl: 'https://icon.horse/icon/notepad-plus-plus.org',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/ea/Notepad_plus_plus.svg',
         installCommand: 'npp.8.9.1.Installer.x64.exe /S',
         uninstallCommand: '%ProgramFiles%\\Notepad++\\uninstall.exe /S',
         detectionRules: [{
@@ -146,7 +146,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Media',
         downloadUrl: 'https://get.videolan.org/vlc/3.0.21/win64/vlc-3.0.21-win64.exe?direct',
         filename: 'vlc-3.0.21-win64.exe',
-        iconUrl: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/vlc.png',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/VLC_Icon.svg',
         installCommand: 'vlc-3.0.21-win64.exe /L=1033 /S',
         uninstallCommand: '%ProgramFiles%\\VideoLAN\\VLC\\uninstall.exe /S',
         detectionRules: [{
@@ -166,7 +166,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Communication',
         downloadUrl: 'https://zoom.us/client/latest/ZoomInstallerFull.msi',
         filename: 'ZoomInstallerFull.msi',
-        iconUrl: 'https://icon.horse/icon/zoom.us',
+        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/zoom.png',
         installCommand: 'msiexec /i "ZoomInstallerFull.msi" /qn /norestart',
         uninstallCommand: 'msiexec /x {ProductCode} /qn',
         detectionRules: [{
@@ -259,7 +259,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Utilities',
         downloadUrl: 'https://github.com/microsoft/PowerToys/releases/download/v0.97.2/PowerToysSetup-0.97.2-x64.exe',
         filename: 'PowerToysSetup.exe',
-        iconUrl: 'https://icon.horse/icon/microsoft.com',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c0/2020_PowerToys_Icon.svg',
         installCommand: 'PowerToysSetup.exe /install /quiet /norestart',
         uninstallCommand: '%ProgramFiles%\\PowerToys\\uninstall.exe /quiet',
         detectionRules: [{
@@ -327,7 +327,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Utilities',
         downloadUrl: 'https://www.dropbox.com/download?plat=win&type=full',
         filename: 'DropboxOfflineInstall.exe',
-        iconUrl: 'https://icon.horse/icon/dropbox.com',
+        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/dropbox.png',
         installCommand: 'DropboxOfflineInstall.exe /S',
         uninstallCommand: '%ProgramFiles(x86)%\\Dropbox\\Client\\DropboxUninstaller.exe /S',
         detectionRules: [{
@@ -347,7 +347,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://www.evernote.com/download/get.php?plat=win',
         filename: 'Evernote-latest.exe',
-        iconUrl: 'https://icon.horse/icon/evernote.com',
+        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/evernote.png',
         installCommand: 'Evernote-latest.exe /S',
         uninstallCommand: '%ProgramFiles%\\Evernote\\Uninstall.exe /S',
         detectionRules: [{
@@ -367,7 +367,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://go.microsoft.com/fwlink/?LinkId=220261',
         filename: 'PBIDesktopSetup_x64.exe',
-        iconUrl: 'https://icon.horse/icon/powerbi.microsoft.com',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/cf/Power_BI_logo.svg',
         installCommand: 'PBIDesktopSetup_x64.exe -quiet -norestart ACCEPT_EULA=1',
         uninstallCommand: 'PBIDesktopSetup_x64.exe -uninstall -quiet',
         detectionRules: [{
@@ -387,7 +387,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Communication',
         downloadUrl: 'https://statics.teams.cdn.office.net/production-windows-x64/lkg/MicrosoftTeams-x64.msix',
         filename: 'MicrosoftTeams-x64.msix',
-        iconUrl: 'https://icon.horse/icon/teams.microsoft.com',
+        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/microsoft-teams.png',
         installCommand: 'powershell -Command "Add-AppxPackage -Path .\\MicrosoftTeams-x64.msix"',
         uninstallCommand: 'powershell -Command "Get-AppxPackage -Name MicrosoftTeams | Remove-AppxPackage"',
         detectionRules: [{
@@ -527,7 +527,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Utilities',
         downloadUrl: 'https://download.anydesk.com/AnyDesk.exe',
         filename: 'AnyDesk.exe',
-        iconUrl: 'https://cdn.iconscout.com/icon/free/png-256/anydesk-1-282700.png',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/f7/AnyDesk-logo.svg',
         installCommand: 'AnyDesk.exe --install "%ProgramFiles(x86)%\\AnyDesk" --silent',
         uninstallCommand: '"%ProgramFiles(x86)%\\AnyDesk\\AnyDesk.exe" --uninstall --silent',
         detectionRules: [{
@@ -547,7 +547,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Utilities',
         downloadUrl: 'https://download01.logi.com/web/ftp/pub/techsupport/optionsplus/logioptionsplus_installer.exe',
         filename: 'logioptionsplus_installer.exe',
-        iconUrl: 'https://icon.horse/icon/logitech.com',
+        iconUrl: 'https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/logitech.png',
         installCommand: 'logioptionsplus_installer.exe /quiet /analytics no /sso no /update no',
         uninstallCommand: 'msiexec /x {ProductCode} /qn',
         detectionRules: [{
@@ -567,7 +567,7 @@ export const APP_CATALOG: CatalogApp[] = [
         category: 'Productivity',
         downloadUrl: 'https://www.pdf24.org/products/pdf-creator/download/pdf24-creator-x64.msi',
         filename: 'pdf24-creator-x64.msi',
-        iconUrl: 'https://icon.horse/icon/pdf24.org',
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/PDF24_Creator_application_logo_256x256.png',
         installCommand: 'msiexec /i "pdf24-creator-x64.msi" /qn',
         uninstallCommand: 'msiexec /x "pdf24-creator-x64.msi" /qn',
         detectionRules: [{
