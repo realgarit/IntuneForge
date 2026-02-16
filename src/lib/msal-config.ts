@@ -17,7 +17,7 @@ const getRedirectUri = () => {
         if (host === 'realgarit.github.io') {
             return 'https://realgarit.github.io/IntuneForge/';
         }
-        // Vercel and Localhost serve from root, so origin is sufficient
+        // Production and Localhost serve from root, so origin is sufficient
         return window.location.origin;
     }
     return 'http://localhost:5173';

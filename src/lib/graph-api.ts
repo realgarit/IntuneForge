@@ -202,9 +202,9 @@ export async function uploadToAzureStorage(
 ): Promise<string[]> {
     const storageUrl = new URL(storageUri);
 
-    // Unified Proxy Strategy for Vercel & Local
+    // Unified Proxy Strategy for Production & Local
     // We send the full target URL as a query parameter to our proxy endpoint.
-    // Vercel: /api/proxy?url=...
+    // Production: /api/proxy?url=...
     // Local: /api/proxy?url=... (handled by Vite middleware)
 
     const targetUrl = `${storageUrl.origin}${storageUrl.pathname}${storageUrl.search}`;
@@ -223,10 +223,10 @@ export async function uploadToAzureStorage(
         blockIds.push(blockId);
 
         // Append block parameters to the *target* URL, which is encoded in the 'url' query param
-        // Wait, the Vercel proxy expects: /api/proxy?url=FULL_TARGET_URL
+        // The proxy expects: /api/proxy?url=FULL_TARGET_URL
         // The target URL for a block needs to be: BASE_SAS_URL + "&comp=block&blockid=..."
 
-        const blockParams = `&comp=block&blockid=${encodeURIComponent(blockId)}&len=${block.size}`;
+        const blockParams = `&comp=block&blockid=${encodeURIComponent(blockId)}`;
         const fullBlockUrl = `${targetUrl}${blockParams}`;
 
         // Final Proxy URL
@@ -234,11 +234,6 @@ export async function uploadToAzureStorage(
 
         const blockResponse = await fetch(blockUrl, {
             method: 'PUT',
-            headers: {
-                'x-ms-version': '2017-04-17',
-                'x-ms-blob-type': 'BlockBlob',
-                'Content-Type': 'application/octet-stream',
-            },
             body: block,
         });
 

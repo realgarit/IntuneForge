@@ -6,7 +6,7 @@ import https from 'https'
 import { IncomingMessage, ServerResponse } from 'http'
 
 // Custom Middleware to proxy Azure Blob Storage requests
-// This mimics the Vercel /api/proxy serverless function.
+// This mimics the /api/proxy serverless function.
 const azureBlobProxy = () => ({
   name: 'azure-blob-proxy',
   configureServer(server: ViteDevServer) {

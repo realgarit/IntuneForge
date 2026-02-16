@@ -29,24 +29,44 @@ app.use((req, res, next) => {
 });
 
 // Proxy endpoint logic
-app.all('/api/proxy', async (req, res) => {
+app.all('/api/proxy', express.raw({ type: '*/*', limit: '50mb' }), async (req, res) => {
     const targetUrl = req.query.url;
     if (!targetUrl) return res.status(400).send('Missing "url"');
 
     try {
+        const headers = new Headers();
+        
+        // Forward most headers from the original request
+        Object.entries(req.headers).forEach(([key, value]) => {
+            const lowerKey = key.toLowerCase();
+            if (lowerKey !== 'host' && lowerKey !== 'connection') {
+                if (value) headers.set(key, Array.isArray(value) ? value[0] : value);
+            }
+        });
+
+        // Use the buffered body from express.raw()
+        let body = null;
+        if (req.method === 'PUT' || req.method === 'POST') {
+            body = req.body;
+            // Ensure Content-Length is explicitly set on the outgoing fetch
+            headers.set('content-length', body.length.toString());
+            
+            // Ensure x-ms-blob-type is set for Azure Storage
+            if (!headers.has('x-ms-blob-type')) {
+                headers.set('x-ms-blob-type', 'BlockBlob');
+            }
+        }
+
         const response = await fetch(targetUrl, {
             method: req.method,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-                'Accept': '*/*',
-            },
-            // fetch follows redirects by default
+            headers: headers,
+            body: body,
+            redirect: 'follow',
         });
 
         // Copy headers from response
         const responseHeaders = {};
         response.headers.forEach((value, key) => {
-            // Skip headers that might cause issues when forwarded
             if (!['content-encoding', 'content-length', 'transfer-encoding', 'connection'].includes(key.toLowerCase())) {
                 responseHeaders[key] = value;
             }
