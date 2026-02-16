@@ -108,7 +108,7 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
         setActiveCustomizations(newCustomizations);
     };
 
-    const downloadApp = async (app: CatalogApp, customizations: Set<string>, silent = false, notes?: string) => {
+    const downloadApp = async (app: CatalogApp, customizations: Set<string> = new Set(), silent = false, notes?: string) => {
         setDownloading(app.id);
         setError(null);
 
