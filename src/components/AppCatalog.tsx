@@ -112,7 +112,8 @@ export function AppCatalog({ onSelect, onBulkSelect }: AppCatalogProps) {
         setError(null);
 
         try {
-            const response = await fetch(app.downloadUrl);
+            const proxyUrl = `/api/proxy?url=${encodeURIComponent(app.downloadUrl)}`;
+            const response = await fetch(proxyUrl);
             if (!response.ok) throw new Error(`Download failed: ${response.statusText}`);
 
             const blob = await response.blob();
